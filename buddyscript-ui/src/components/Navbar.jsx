@@ -110,13 +110,13 @@ const Navbar = () => {
                             </li>
                         </ul>
                         <div className="_header_nav_profile">
-                            <div className="_header_nav_profile_image">
+                            <div className="_header_nav_profile_image" style={{marginRight:'15px'}}>
                                 <img 
                                     src={profilePhotoSrc} 
                                     alt="Profile" 
                                     className="_nav_profile_img" 
                                     onError={handleProfilePhotoError}
-                                    style={{ borderRadius: '50%', objectFit: 'cover', width: '30px', height: '30px' }}
+                                    style={{ borderRadius: '50%', objectFit: 'cover', width: '30px', height: '30px'}}
                                 />
                             </div>
                             <div className="_header_nav_dropdown" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ cursor: 'pointer' }}>
