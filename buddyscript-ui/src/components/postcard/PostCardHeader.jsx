@@ -8,6 +8,7 @@ const PostCardHeader = ({
     defaultAvatarSrc = '/assets/images/Avatar.png',
     canDelete = false,
     onDelete,
+    onEdit,
 }) => {
     const visibilityLabel = visibility
         ? `${String(visibility).charAt(0).toUpperCase()}${String(visibility).slice(1)}`
@@ -31,6 +32,11 @@ const PostCardHeader = ({
     const handleDelete = () => {
         setIsMenuOpen(false);
         onDelete?.();
+    };
+
+    const handleEdit = () => {
+        setIsMenuOpen(false);
+        onEdit?.();
     };
 
     return (
@@ -124,6 +130,15 @@ const PostCardHeader = ({
                                 </span>
                                 Delete post
                             </button>
+
+                            {onEdit && (
+                                <button type="button" className="_feed_timeline_dropdown_link" onClick={handleEdit} style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', padding: 0, marginTop: '10px' }}>
+                                    <span aria-hidden="true" className='delete-icon'>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    </span>
+                                    Edit Post
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

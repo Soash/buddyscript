@@ -8,8 +8,8 @@ import {
     fetchPostReactors,
     fetchCommentReactors,
     deletePost,
+    updatePost,
 } from '../store/feedSlice';
-import { Link } from 'react-router-dom';
 
 import PostCardHeader from './postcard/PostCardHeader';
 import PostCardMedia from './postcard/PostCardMedia';
@@ -19,6 +19,7 @@ import PostCardReactionBar from './postcard/PostCardReactionBar';
 import PostCardComments from './postcard/PostCardComments';
 import PostCardCommentsModal from './postcard/PostCardCommentsModal';
 import PostCardReactorsModal from './postcard/PostCardReactorsModal';
+import PostCardEditModal from './postcard/PostCardEditModal';
 
 const REACTION_COLORS = {
     like: '#1877F2',
@@ -100,6 +101,9 @@ const PostCard = ({ post }) => {
     const [isCommentReactorsModalOpen, setIsCommentReactorsModalOpen] = React.useState(false);
     const [activeCommentIdForReactors, setActiveCommentIdForReactors] = React.useState(null);
 
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+    const [isEditSaving, setIsEditSaving] = React.useState(false);
+
     const defaultAvatarSrc = '/assets/images/Avatar.png';
     const composerAvatarSrc = currentUser?.profile_photo || defaultAvatarSrc;
 
@@ -164,12 +168,55 @@ const PostCard = ({ post }) => {
     };
 
     const canDelete = !!currentUser?.id && currentUser.id === post.author?.id;
+    const canEdit = canDelete;
 
     const handleDeletePost = () => {
         if (!canDelete) return;
         const ok = window.confirm('Delete this post?');
         if (!ok) return;
         dispatch(deletePost(post.id));
+    };
+
+    const openEditModal = () => {
+        if (!canEdit) return;
+        setIsEditModalOpen(true);
+    };
+
+    const closeEditModal = () => {
+        if (isEditSaving) return;
+        setIsEditModalOpen(false);
+    };
+
+    const handleSaveEdit = async ({
+        content,
+        visibility,
+        deleteImageIds,
+        existingCaptionsById,
+        newImages,
+        newImageCaptions,
+        clearLegacyImage,
+    }) => {
+        try {
+            setIsEditSaving(true);
+            await dispatch(
+                updatePost({
+                    postId: post.id,
+                    content,
+                    visibility,
+                    deleteImageIds,
+                    existingCaptionsById,
+                    newImages,
+                    newImageCaptions,
+                    clearLegacyImage,
+                })
+            ).unwrap();
+            setIsEditModalOpen(false);
+        } catch (err) {
+            console.error('Failed to update post:', err);
+            alert('Failed to update post. Please try again.');
+        } finally {
+            setIsEditSaving(false);
+        }
     };
 
     const openCommentsModal = () => {
@@ -219,8 +266,16 @@ const PostCard = ({ post }) => {
                     defaultAvatarSrc={defaultAvatarSrc}
                     canDelete={canDelete}
                     onDelete={handleDeletePost}
+                    onEdit={canEdit ? openEditModal : undefined}
                 />
-                {post.content && <h4 className="_feed_inner_timeline_post_title" style={{marginTop: "16px"}}>{post.content}</h4>}
+                {post.content && (
+                    <h4
+                        className="_feed_inner_timeline_post_title"
+                        style={{ marginTop: '16px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                    >
+                        {post.content}
+                    </h4>
+                )}
                 <PostCardMedia images={images} onOpenImage={openImageModal} />
             </div>
 
@@ -231,6 +286,17 @@ const PostCard = ({ post }) => {
                 onClose={closeImageModal}
                 onPrev={goPrevImage}
                 onNext={goNextImage}
+            />
+
+            <PostCardEditModal
+                isOpen={isEditModalOpen}
+                onClose={closeEditModal}
+                currentUser={currentUser}
+                initialContent={post.content || ''}
+                initialVisibility={post.visibility || 'public'}
+                initialImages={images}
+                onSave={handleSaveEdit}
+                saving={isEditSaving}
             />
             
             <PostCardReactsSummary

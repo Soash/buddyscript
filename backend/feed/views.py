@@ -1,5 +1,10 @@
+import json
+
+from django.db import transaction
+from django.db.models import Q, Max
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -88,6 +93,104 @@ class PostViewSet(viewsets.ModelViewSet):
         out = self.get_serializer(post)
         headers = self.get_success_headers(out.data)
         return Response(out.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        post = self.get_object()
+
+        raw_content = request.data.get('content', None)
+        raw_visibility = request.data.get('visibility', None)
+
+        # For PATCH: only update fields that are present.
+        if raw_content is not None or not partial:
+            post.content = (raw_content or '').strip()
+
+        if raw_visibility is not None or not partial:
+            visibility = (raw_visibility or '').strip().lower()
+            allowed = {c[0] for c in Post.VISIBILITY_CHOICES}
+            if visibility not in allowed:
+                raise ValidationError({'visibility': 'Invalid visibility value.'})
+            post.visibility = visibility
+
+        # Images
+        delete_ids_raw = []
+        if hasattr(request.data, 'getlist'):
+            delete_ids_raw = request.data.getlist('images_to_delete')
+        else:
+            maybe = request.data.get('images_to_delete')
+            if maybe:
+                delete_ids_raw = [maybe]
+
+        delete_ids = []
+        for item in delete_ids_raw:
+            if item is None:
+                continue
+            if isinstance(item, str) and ',' in item:
+                parts = [p.strip() for p in item.split(',') if p.strip()]
+                delete_ids.extend(parts)
+            else:
+                delete_ids.append(item)
+
+        delete_ids = [int(x) for x in delete_ids if str(x).strip().isdigit()]
+
+        existing_captions = {}
+        existing_captions_raw = request.data.get('existing_image_captions')
+        if existing_captions_raw:
+            try:
+                parsed = json.loads(existing_captions_raw)
+                if isinstance(parsed, dict):
+                    existing_captions = parsed
+            except Exception:
+                raise ValidationError({'existing_image_captions': 'Must be a JSON object mapping image_id -> caption.'})
+
+        # Normalize keys to ints.
+        captions_by_id = {}
+        for k, v in (existing_captions or {}).items():
+            try:
+                image_id = int(k)
+            except Exception:
+                continue
+            captions_by_id[image_id] = (v or '')
+
+        uploaded_images = request.FILES.getlist('images')
+        new_captions = request.data.getlist('image_captions') if hasattr(request.data, 'getlist') else []
+
+        clear_legacy_image_raw = request.data.get('clear_legacy_image')
+        clear_legacy_image = str(clear_legacy_image_raw).strip().lower() in {'1', 'true', 't', 'yes', 'y', 'on'}
+
+        with transaction.atomic():
+            if clear_legacy_image and post.image:
+                post.image = None
+            post.save()
+
+            if delete_ids:
+                PostImage.objects.filter(post=post, id__in=delete_ids).delete()
+
+            for image_id, caption in captions_by_id.items():
+                PostImage.objects.filter(post=post, id=image_id).update(caption=caption)
+
+            if uploaded_images:
+                start_pos = (PostImage.objects.filter(post=post).aggregate(m=Max('position')).get('m') or -1) + 1
+                for idx, image_file in enumerate(uploaded_images):
+                    caption = new_captions[idx] if idx < len(new_captions) else ''
+                    PostImage.objects.create(post=post, image=image_file, caption=caption, position=start_pos + idx)
+
+            # Enforce: post must have content or at least one image (legacy or PostImage).
+            has_any_image = bool(post.image) or PostImage.objects.filter(post=post).exists()
+            if not post.content and not has_any_image:
+                raise ValidationError({'detail': 'A post must include text content or at least one image.'})
+
+            # Normalize positions after add/remove.
+            images = list(PostImage.objects.filter(post=post).order_by('position', 'id'))
+            for idx, img in enumerate(images):
+                if img.position != idx:
+                    img.position = idx
+                    img.save(update_fields=['position'])
+
+        # Serialize a fully-prefetched instance (keeps response consistent with list view).
+        refreshed = self.get_queryset().filter(pk=post.pk).first() or post
+        serializer = self.get_serializer(refreshed)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

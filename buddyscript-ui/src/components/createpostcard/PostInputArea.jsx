@@ -4,7 +4,7 @@ const PostInputArea = ({ currentUser, text, setText }) => {
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
 
     return (
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '16px' }}>
             <div>
                 <img
                     src={currentUser?.profile_photo || '/assets/images/Avatar.png'}
@@ -25,7 +25,7 @@ const PostInputArea = ({ currentUser, text, setText }) => {
                     onChange={(e) => setText(e.target.value)}
                     style={{ 
                         width: '100%', 
-                        minHeight: '60px', 
+                        minHeight: '100px', 
                         color: isDarkMode ? '#fff' : 'var(--color1)',
                         border: 'none', 
                         backgroundColor: 'transparent',

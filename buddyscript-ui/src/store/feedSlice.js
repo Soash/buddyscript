@@ -118,6 +118,40 @@ export const deletePost = createAsyncThunk('feed/deletePost', async (postId, { r
     }
 });
 
+export const updatePost = createAsyncThunk('feed/updatePost', async ({ postId, content, visibility, deleteImageIds, existingCaptionsById, newImages, newImageCaptions, clearLegacyImage }, { rejectWithValue }) => {
+    try {
+        const formData = new FormData();
+
+        if (content !== undefined) formData.append('content', content);
+        if (visibility !== undefined) formData.append('visibility', visibility);
+
+        const ids = Array.isArray(deleteImageIds) ? deleteImageIds : [];
+        ids.forEach((id) => {
+            if (id !== null && id !== undefined) formData.append('images_to_delete', String(id));
+        });
+
+        if (existingCaptionsById && typeof existingCaptionsById === 'object') {
+            formData.append('existing_image_captions', JSON.stringify(existingCaptionsById));
+        }
+
+        if (clearLegacyImage) {
+            formData.append('clear_legacy_image', '1');
+        }
+
+        const files = Array.isArray(newImages) ? newImages : [];
+        const captions = Array.isArray(newImageCaptions) ? newImageCaptions : [];
+        files.forEach((file, idx) => {
+            formData.append('images', file);
+            formData.append('image_captions', captions[idx] || '');
+        });
+
+        const response = await api.patch(`feed/posts/${postId}/`, formData);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
 export const addComment = createAsyncThunk('feed/addComment', async ({ postId, text }, { rejectWithValue }) => {
     try {
         const response = await api.post(`feed/comments/`, { post: postId, content: text });
@@ -367,6 +401,15 @@ const feedSlice = createSlice({
             delete state.likersLoadingByPostId[postId];
             delete state.reactorsByPostId[postId];
             delete state.reactorsLoadingByPostId[postId];
+        });
+
+        builder.addCase(updatePost.fulfilled, (state, action) => {
+            const updated = action.payload;
+            if (!updated?.id) return;
+            const idx = state.posts.findIndex((p) => p.id === updated.id);
+            if (idx !== -1) {
+                state.posts[idx] = updated;
+            }
         });
     }
 });

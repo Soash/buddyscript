@@ -201,7 +201,7 @@ const PostCardComments = ({
 
                                     <div className="_comment_status">
                                         <p className="_comment_status_text">
-                                            <span>{c.content}</span>
+                                            <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{c.content}</span>
                                         </p>
                                     </div>
 
@@ -375,7 +375,7 @@ const PostCardComments = ({
                                                             </div>
                                                             <div className="_comment_status">
                                                                 <p className="_comment_status_text">
-                                                                    <span>{r.content}</span>
+                                                                    <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{r.content}</span>
                                                                 </p>
                                                             </div>
                                                             <div className="_total_reactions" role="button" tabIndex={0}>

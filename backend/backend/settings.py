@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -127,6 +128,26 @@ if DATABASE_URL:
         conn_max_age=600,
         ssl_require=not DEBUG,
     )
+
+
+# Tests
+# When DATABASE_URL points at a managed DB user without CREATE DATABASE, Django's
+# test runner will fail while trying to create the test database.
+# Use an in-memory SQLite database for tests to keep CI/local runs reliable.
+if 'test' in sys.argv:
+    _memory_db = 'file:memorydb_default?mode=memory&cache=shared'
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': _memory_db,
+            'OPTIONS': {
+                'uri': True,
+            },
+            'TEST': {
+                'NAME': _memory_db,
+            },
+        }
+    }
 
 
 # Password validation
