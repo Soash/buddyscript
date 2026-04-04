@@ -12,11 +12,7 @@ export const fetchUserProfile = createAsyncThunk('profile/fetchUserProfile', asy
 
 export const updateProfile = createAsyncThunk('profile/updateProfile', async (formData, { rejectWithValue }) => {
     try {
-        const response = await api.patch(`users/me/`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        });
+        const response = await api.patch(`users/me/`, formData);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);

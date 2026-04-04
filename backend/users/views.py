@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.db.models import Q
 from django.db.models import BooleanField, IntegerField, OuterRef, Subquery, Exists, Value
 
@@ -32,6 +33,7 @@ class RegisterView(generics.CreateAPIView):
 class UserProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def get_object(self):
         return self.request.user

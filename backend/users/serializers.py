@@ -24,19 +24,21 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 class UserSerializer(serializers.ModelSerializer):
-
-    profile_photo = serializers.SerializerMethodField()
+    profile_photo = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
         fields = ('id', 'email', 'first_name', 'last_name', 'profile_photo', 'bio', 'role')
         read_only_fields = ('id', 'email')
 
-    def get_profile_photo(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
         request = self.context.get('request')
-        if obj.profile_photo and request:
-            return request.build_absolute_uri(obj.profile_photo.url)
-        return None
+        if instance.profile_photo and request:
+            data['profile_photo'] = request.build_absolute_uri(instance.profile_photo.url)
+        elif not instance.profile_photo:
+            data['profile_photo'] = None
+        return data
 
 
 class DirectoryUserSerializer(UserSerializer):
