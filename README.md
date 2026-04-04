@@ -1,6 +1,4 @@
 # BuddyScript
-
-BuddyScript is a two-part app:
 - **Backend**: Django REST API (JWT auth)
 - **Frontend**: React + Vite
 - **Databse**: PostgreSQL
