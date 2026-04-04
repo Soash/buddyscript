@@ -5,13 +5,24 @@ BuddyScript is a two-part app:
 - **Frontend**: React + Vite
 
 ## What it does
-- Email-based authentication (JWT access/refresh).
+- Authentication (JWT access/refresh).
 - User profiles (name, role, bio, profile photo).
 - Social graph: follow/unfollow, friends + friend requests.
 - Feed: posts (public/private), comments, and multi-reactions (`like` / `love` / `haha`).
-- Events: create events and RSVP (going/interested).
+- Events: create events and RSVP.
 
 Most APIs require an authenticated user by default.
+
+## Feature highlights
+- **Connections hub**: a dedicated Connections page with tabs for Incoming Requests, Sent Requests, and Following.
+  - Deep links supported via hashes: `/connections#friend-request`, `/connections#send-request`, `/connections#following`.
+- **Friend requests**: send, accept, decline, and cancel sent requests.
+- **Follow system**: follow/unfollow with UI that updates immediately across pages (no refresh required).
+- **Suggested People (Left Sidebar)**: shows random users, excluding people you already requested/follow.
+- **You Might Like (Right Sidebar)**: shows 1 random user you don’t follow, with an **Ignore** action to load a different suggestion.
+  - Supports an `exclude_id` query param to avoid immediately repeating the last suggestion.
+- **Feed performance**: paginated feed endpoint + **infinite scroll** on the frontend (does not fetch all posts at once).
+- **Quality-of-life**: default avatar fallback when a profile photo is missing/broken.
 
 ## Repo structure
 - `backend/` — Django project (API is mounted under `/api/`)
@@ -22,8 +33,16 @@ Most APIs require an authenticated user by default.
 - **Node.js** (18+ recommended) and npm
 
 ## Environment
-- Backend reads environment variables from `backend/.env` (already included for local dev).
-- For deployment, set `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, and usually `DATABASE_URL` (Postgres).
+- Backend reads environment variables from `backend/.env`.
+  - For local dev, copy `backend/.env.example` → `backend/.env` and adjust as needed.
+  - For deployment, set `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, and usually `DATABASE_URL` (Postgres).
+
+### Frontend API base URL
+The frontend reads the API base URL from `buddyscript-ui/.env` (copy from `buddyscript-ui/.env.example`):
+
+- `VITE_API_BASE_URL=http://127.0.0.1:8000/api/`
+
+If you change `buddyscript-ui/.env`, restart `npm run dev`.
 
 ## Quick start (Windows / PowerShell)
 
@@ -31,8 +50,11 @@ Most APIs require an authenticated user by default.
 From the repo root:
 
 ```powershell
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
 cd backend
+python manage.py migrate
 python manage.py runserver
 ```
 
@@ -53,7 +75,7 @@ Frontend will run at the URL printed by Vite (usually `http://localhost:5173/`).
 - API base path: `/api/` (see `backend/backend/urls.py`).
 - Auth: JWT (SimpleJWT). Most endpoints expect an authenticated user.
 - Frontend API client: `buddyscript-ui/src/api/axios.js`.
-  - Dev base URL is configured to point to `http://127.0.0.1:8000/api/`.
+  - Base URL comes from `VITE_API_BASE_URL` (with a localhost fallback for dev).
 
 ### Authentication header
 Send your access token in:
@@ -110,6 +132,8 @@ Base path: `/api/feed/` (DRF router)
 - `GET /api/feed/posts/` — list posts visible to you.
   - Query: `?author=<id>` (optional)
   - Query: `?q=<term>` (optional; searches post content, image captions, and author name/email)
+  - Pagination: `?page=<n>` and optional `?page_size=<n>`
+  - Response (paginated): `{ count, next, previous, results }`
 - `POST /api/feed/posts/` — create a post (text and/or images).
   - Fields: `content`, `visibility` (`public`|`private`), `images[]` (multipart), `image_captions[]`
 - `GET /api/feed/posts/<id>/` — retrieve post.
@@ -168,3 +192,7 @@ npm run build
 
 ## Extra docs
 - Frontend scaffold notes: `buddyscript-ui/README.md`
+
+## Misc
+- Default profile image fallback is handled in the UI using `/assets/images/Avatar.png`.
+- `backend/public/health.php` is a simple PHP health file intended to be served by a PHP-capable web server (Django won’t execute PHP).
