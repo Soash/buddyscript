@@ -15,3 +15,5 @@ whitenoise
 
 # Production WSGI server
 gunicorn
+psycopg2-binary
+
