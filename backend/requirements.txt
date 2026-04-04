@@ -1,0 +1,17 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+Pillow
+
+# .env support
+python-dotenv
+
+# DATABASE_URL parsing (Postgres on most hosts)
+dj-database-url
+
+# Static files serving (simple hosting)
+whitenoise
+
+# Production WSGI server
+gunicorn

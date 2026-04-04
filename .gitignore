@@ -1,0 +1,83 @@
+# ==============================
+# BuddyScript (Django + Vite)
+# ==============================
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+
+*.log
+.github/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+backend_venv/
+
+# Django artifacts
+*.sqlite3
+backend/db.sqlite3
+
+# Collected/static outputs (keep source assets tracked)
+staticfiles/
+
+# User uploads
+backend/media/
+backend/**/media/
+
+# Secrets / environment files
+.env
+.env.*
+!.env.example
+
+# Backend env
+backend/.env
+!backend/.env.example
+
+# --- Node / Vite / React ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite build output
+buddyscript-ui/dist/
+
+# Vite cache
+buddyscript-ui/.vite/
+
+# --- Editor / OS ---
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+.idea/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Misc repo folders ---
+backup/
