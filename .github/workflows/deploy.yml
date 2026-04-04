@@ -18,4 +18,5 @@ jobs:
           script: |
             /var/www/buddyscript/deploy.sh
 
+
             
