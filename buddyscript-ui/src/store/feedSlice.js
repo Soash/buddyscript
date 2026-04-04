@@ -6,13 +6,15 @@ export const fetchPosts = createAsyncThunk('feed/fetchPosts', async (arg, { reje
         // Backward compatible:
         // - dispatch(fetchPosts())
         // - dispatch(fetchPosts(authorId))
-        // - dispatch(fetchPosts({ authorId, q }))
+        // - dispatch(fetchPosts({ authorId, q, page }))
         let authorId;
         let q;
+        let page;
 
         if (arg && typeof arg === 'object') {
             authorId = arg.authorId;
             q = arg.q;
+            page = arg.page;
         } else {
             authorId = arg;
         }
@@ -20,6 +22,7 @@ export const fetchPosts = createAsyncThunk('feed/fetchPosts', async (arg, { reje
         const params = new URLSearchParams();
         if (authorId) params.set('author', authorId);
         if (q) params.set('q', q);
+        if (page) params.set('page', String(page));
 
         const query = params.toString() ? `?${params.toString()}` : '';
         const response = await api.get(`feed/posts/${query}`);
@@ -172,8 +175,13 @@ const feedSlice = createSlice({
     name: 'feed',
     initialState: {
         posts: [],
-        loading: false,
+        loadingInitial: false,
+        loadingMore: false,
         error: null,
+        page: 1,
+        hasMore: true,
+        next: null,
+        count: null,
         likersByPostId: {},
         likersLoadingByPostId: {},
         reactorsByPostId: {},
@@ -204,16 +212,54 @@ const feedSlice = createSlice({
         };
 
         builder
-            .addCase(fetchPosts.pending, (state) => {
-                state.loading = true;
+            .addCase(fetchPosts.pending, (state, action) => {
+                const requestedPage = action.meta?.arg && typeof action.meta.arg === 'object'
+                    ? (action.meta.arg.page || 1)
+                    : 1;
+
+                if (requestedPage > 1) {
+                    state.loadingMore = true;
+                } else {
+                    state.loadingInitial = true;
+                }
             })
             .addCase(fetchPosts.fulfilled, (state, action) => {
-                state.loading = false;
-                // Accommodates unpaginated or paginated DRF ModelViewSet array structures
-                state.posts = Array.isArray(action.payload) ? action.payload : (action.payload.results || []);
+                state.loadingInitial = false;
+                state.loadingMore = false;
+
+                const requestedPage = action.meta?.arg && typeof action.meta.arg === 'object'
+                    ? (action.meta.arg.page || 1)
+                    : 1;
+
+                // Accommodates unpaginated or paginated DRF ModelViewSet structures
+                if (Array.isArray(action.payload)) {
+                    state.posts = action.payload;
+                    state.page = 1;
+                    state.count = action.payload.length;
+                    state.next = null;
+                    state.hasMore = false;
+                    return;
+                }
+
+                const results = action.payload?.results || [];
+                state.count = typeof action.payload?.count === 'number' ? action.payload.count : null;
+                state.next = action.payload?.next || null;
+                state.hasMore = !!action.payload?.next;
+
+                if (requestedPage > 1) {
+                    const existingIds = new Set(state.posts.map((p) => p.id));
+                    for (const post of results) {
+                        if (!existingIds.has(post.id)) state.posts.push(post);
+                    }
+                    state.page = requestedPage;
+                } else {
+                    state.posts = results;
+                    state.page = 1;
+                }
             })
             .addCase(fetchPosts.rejected, (state, action) => {
-                state.loading = false;
+                state.loadingInitial = false;
+                state.loadingMore = false;
                 state.error = action.payload;
             })
             .addCase(createPost.fulfilled, (state, action) => {

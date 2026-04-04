@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Post, Comment, PostLike, CommentLike, PostImage
 from .serializers import (
@@ -15,10 +16,17 @@ from .serializers import (
 from django.db.models import Q
 from .permissions import IsPostAuthor
 
+
+class PostPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
+    pagination_class = PostPagination
 
     def get_permissions(self):
         # Only the post author can update/delete; other actions like like/likers

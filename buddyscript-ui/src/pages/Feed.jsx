@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { fetchPosts } from '../store/feedSlice';
@@ -21,13 +21,35 @@ const Feed = () => {
 	});
 
 	const dispatch = useDispatch();
-	const { posts, loading } = useSelector(state => state.feed);
+	const { posts, loadingInitial, loadingMore, page, hasMore } = useSelector(state => state.feed);
 	const location = useLocation();
 	const searchQuery = (new URLSearchParams(location.search).get('q') || '').trim();
+	const loadMoreRef = useRef(null);
 
 	useEffect(() => {
-		dispatch(fetchPosts({ q: searchQuery }));
+		dispatch(fetchPosts({ q: searchQuery, page: 1 }));
 	}, [dispatch, searchQuery]);
+
+	useEffect(() => {
+		const target = loadMoreRef.current;
+		if (!target) return;
+		if (!hasMore) return;
+		if (loadingInitial || loadingMore) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const first = entries[0];
+				if (!first?.isIntersecting) return;
+				if (!hasMore) return;
+				if (loadingInitial || loadingMore) return;
+				dispatch(fetchPosts({ q: searchQuery, page: page + 1 }));
+			},
+			{ root: null, rootMargin: '200px', threshold: 0 }
+		);
+
+		observer.observe(target);
+		return () => observer.disconnect();
+	}, [dispatch, searchQuery, page, hasMore, loadingInitial, loadingMore]);
 
 	useEffect(() => {
         localStorage.setItem('darkMode', isDarkMode);
@@ -62,14 +84,19 @@ const Feed = () => {
 
 											<Story />
 											<CreatePostCard />
-											{loading ? (
+											{loadingInitial ? (
 												<p>Loading posts...</p>
 											) : posts.length === 0 ? (
 												<p>No posts found.</p>
 											) : (
-												posts.map((post) => (
-													<PostCard key={post.id} post={post} />
-												))
+												<>
+													{posts.map((post) => (
+														<PostCard key={post.id} post={post} />
+													))}
+													<div ref={loadMoreRef} style={{ height: 1 }} />
+													{loadingMore ? <p>Loading more...</p> : null}
+													{!hasMore && posts.length > 0 ? <p>No more posts.</p> : null}
+												</>
 											)}
 										</div>
 									</div>
