@@ -32,7 +32,7 @@ const PostCardReactsSummary = ({
                               }
                             : undefined
                     }
-                    style={{ cursor: canOpen ? 'pointer' : 'default' }}
+                    style={{ cursor: canOpen ? 'pointer' : 'default', width: '30px', height: '30px', objectFit: 'cover' }}
                     title={canOpen ? 'View who reacted' : 'Reactions are not available for private posts'}
                 >
                     {top5.map((r, idx) => {
