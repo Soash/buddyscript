@@ -15,13 +15,7 @@ const PostCardHeader = ({
         : '';
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [photoKey, setPhotoKey] = useState(Date.now()); // force re-render
     const menuRef = React.useRef(null);
-
-    // Force img reload whenever author.profile_photo changes
-    useEffect(() => {
-        setPhotoKey(Date.now());
-    }, [author?.profile_photo]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -44,21 +38,20 @@ const PostCardHeader = ({
         onEdit?.();
     };
 
-    const imgSrc = author?.profile_photo || defaultAvatarSrc;
-
     return (
         <div className="_feed_inner_timeline_post_top">
             <div className="_feed_inner_timeline_post_box">
                 <div className="_feed_inner_timeline_post_box_image">
                     <Link to={`/profile/${author?.id}`}>
                         <img
-                            key={photoKey} // forces React to reload image
-                            src={imgSrc}
+                            src={author?.profile_photo || defaultAvatarSrc}
                             alt="Profile"
                             className="_post_img"
                             style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                             onError={(e) => {
-                                e.currentTarget.src = defaultAvatarSrc;
+                                if (!e.currentTarget.src.endsWith(defaultAvatarSrc)) {
+                                    e.currentTarget.src = defaultAvatarSrc;
+                                }
                             }}
                         />
                     </Link>
