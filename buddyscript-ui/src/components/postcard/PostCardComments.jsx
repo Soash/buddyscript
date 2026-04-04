@@ -141,6 +141,18 @@ const PostCardComments = ({
             </div>
 
             <div className="_timline_comment_main">
+                {!disableCollapseExpand && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
+                    <div className="_previous_comment">
+                        <button
+                            type="button"
+                            className="_previous_comment_txt"
+                            onClick={() => setVisibleTopLevelCount(resolvedExpandedCount)}
+                        >
+                            View {hiddenCount} previous comments
+                        </button>
+                    </div>
+                )}
+
                 {canExpandCollapse && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
                     <div className="_previous_comment">
                         <button
