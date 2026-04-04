@@ -393,7 +393,7 @@ const PostCard = ({ post }) => {
                                         className="_bs_reactors_avatar"
                                     />
                                     <div className="_bs_reactors_meta">
-                                        <div className="_bs_reactors_name">
+                                        <div className="_comment_name_title">
                                         {r?.user?.first_name || 'User'} {r?.user?.last_name || ''}
                                         </div>
                                     </div>
