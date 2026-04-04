@@ -1,0 +1,21 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main  # Change this if your main branch is named 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute deployment script via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            /var/www/buddyscript/deploy.sh
+
+            

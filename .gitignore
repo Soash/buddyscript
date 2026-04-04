@@ -24,7 +24,7 @@ pip-wheel-metadata/
 share/python-wheels/
 
 *.log
-.github/
+.github1/
 
 # Virtual environments
 .venv/
@@ -81,3 +81,7 @@ Desktop.ini
 
 # --- Misc repo folders ---
 backup/
+
+digitalocean_ssh
+digitalocean_ssh.pub
+
