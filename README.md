@@ -4,6 +4,13 @@ BuddyScript is a two-part app:
 - **Backend**: Django REST API (JWT auth)
 - **Frontend**: React + Vite
 
+## Live server
+- http://139.59.3.116/
+
+## AI models used
+- Gemini 3.1 Pro
+- GPT-5.2
+
 ## What it does
 - Authentication (JWT access/refresh).
 - User profiles (name, role, bio, profile photo).
@@ -190,9 +197,3 @@ npm run lint
 npm run build
 ```
 
-## Extra docs
-- Frontend scaffold notes: `buddyscript-ui/README.md`
-
-## Misc
-- Default profile image fallback is handled in the UI using `/assets/images/Avatar.png`.
-- `backend/public/health.php` is a simple PHP health file intended to be served by a PHP-capable web server (Django won’t execute PHP).
