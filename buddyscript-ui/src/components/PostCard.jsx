@@ -101,6 +101,10 @@ const PostCard = ({ post }) => {
     const [isCommentReactorsModalOpen, setIsCommentReactorsModalOpen] = React.useState(false);
     const [activeCommentIdForReactors, setActiveCommentIdForReactors] = React.useState(null);
 
+    const [isContentExpanded, setIsContentExpanded] = React.useState(false);
+    const [isContentOverflowing, setIsContentOverflowing] = React.useState(false);
+    const contentRef = React.useRef(null);
+
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
     const [isEditSaving, setIsEditSaving] = React.useState(false);
 
@@ -120,6 +124,34 @@ const PostCard = ({ post }) => {
         ? post.images
         : (post.image ? [{ id: null, image: post.image, caption: '', position: 0 }] : []);
     const userReactionType = post.user_reaction_type || (post.is_liked_by_user ? 'like' : null);
+
+    React.useEffect(() => {
+        setIsContentExpanded(false);
+        setIsContentOverflowing(false);
+    }, [post?.id, post?.content]);
+
+    React.useEffect(() => {
+        const el = contentRef.current;
+        if (!el) return;
+
+        if (isContentExpanded) {
+            setIsContentOverflowing(true);
+            return;
+        }
+
+        const raf = window.requestAnimationFrame(() => {
+            const node = contentRef.current;
+            if (!node) return;
+
+            const measuredOverflow = node.scrollHeight > node.clientHeight + 1;
+            const text = String(post?.content || '');
+            const fallbackOverflow = text.split('\n').length > 5 || text.length > 320;
+
+            setIsContentOverflowing(measuredOverflow || fallbackOverflow);
+        });
+
+        return () => window.cancelAnimationFrame(raf);
+    }, [post?.content, isContentExpanded]);
 
     const openImageModal = (index) => {
         setActiveImageIndex(index);
@@ -269,12 +301,46 @@ const PostCard = ({ post }) => {
                     onEdit={canEdit ? openEditModal : undefined}
                 />
                 {post.content && (
-                    <h4
-                        className="_feed_inner_timeline_post_title"
-                        style={{ marginTop: '16px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                    >
-                        {post.content}
-                    </h4>
+                    <div>
+                        <h4
+                            ref={contentRef}
+                            className="_feed_inner_timeline_post_title"
+                            style={{
+                                marginTop: '16px',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                ...(isContentExpanded
+                                    ? {}
+                                    : {
+                                          overflow: 'hidden',
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 5,
+                                          WebkitBoxOrient: 'vertical',
+                                      }),
+                            }}
+                        >
+                            {post.content}
+                        </h4>
+
+                        {isContentOverflowing && (
+                            <button
+                                type="button"
+                                onClick={() => setIsContentExpanded((v) => !v)}
+                                aria-expanded={isContentExpanded}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
+                                    marginTop: '8px',
+                                    color: 'var(--color5)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {isContentExpanded ? '... See less' : '... See more'}
+                            </button>
+                        )}
+                    </div>
                 )}
                 <PostCardMedia images={images} onOpenImage={openImageModal} />
             </div>
