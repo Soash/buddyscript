@@ -71,7 +71,16 @@ const Registration = () => {
 							<div className="_social_registration_content_bottom_txt _mar_b40"> <span>Or</span>
 							</div>
 							<form className="_social_registration_form" onSubmit={handleSubmit}>
-                                {error && <div className="alert alert-danger">{typeof error === 'string' ? error : JSON.stringify(error)}</div>}
+                                {error && (
+									<div className="alert alert-danger">
+										{typeof error === 'string'
+										? error
+										: Object.values(error)
+											.flat()
+											.map(msg => msg.charAt(0).toUpperCase() + msg.slice(1))
+											.join(' ')}
+									</div>
+									)}
 								<div className="row">
                                     <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12">
 										<div className="_social_registration_form_input _mar_b14">
