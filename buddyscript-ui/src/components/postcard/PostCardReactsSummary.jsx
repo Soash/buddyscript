@@ -32,13 +32,13 @@ const PostCardReactsSummary = ({
                               }
                             : undefined
                     }
-                    style={{ cursor: canOpen ? 'pointer' : 'default', width: '30px', height: '30px', objectFit: 'cover' }}
+                    style={{ cursor: canOpen ? 'pointer' : 'default' }}
                     title={canOpen ? 'View who reacted' : 'Reactions are not available for private posts'}
                 >
                     {top5.map((r, idx) => {
                         const src = r?.user?.profile_photo || defaultAvatarSrc;
                         const classes = idx === 0 ? '_react_img1' : `_react_img${idx >= 2 ? ' _rect_img_mbl_none' : ''}`;
-                        return <img key={`${r?.user?.id || 'u'}-${idx}`} src={src} alt="" className={classes} />;
+                        return <img key={`${r?.user?.id || 'u'}-${idx}`} src={src} alt="" className={classes} style={{objectFit: 'cover'}}/>;
                     })}
                     {remainder > 0 && <p className="_feed_inner_timeline_total_reacts_para">{remainder}+</p>}
                 </div>

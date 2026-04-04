@@ -183,7 +183,7 @@ const PostCardComments = ({
                         <div className="_comment_main" key={c.id}>
                             <div className="_comment_image">
                                 <Link to={`/profile/${c.author?.id}`} className="_comment_image_link">
-                                    <img src={avatarSrc} alt="" className="_comment_img1" />
+                                    <img src={avatarSrc} alt="" className="_comment_img1" style={{objectFit:'cover'}} />
                                 </Link>
                             </div>
 
@@ -359,7 +359,7 @@ const PostCardComments = ({
                                                 <div className="_comment_main" key={r.id}>
                                                     <div className="_comment_image">
                                                         <Link to={`/profile/${r.author?.id}`} className="_comment_image_link">
-                                                            <img src={replyAvatarSrc} alt="" className="_comment_img1" />
+                                                            <img src={replyAvatarSrc} alt="" className="_comment_img1" style={{objectFit:'cover'}}/>
                                                         </Link>
                                                     </div>
                                                     <div className="_comment_area">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const PostCardHeader = ({
@@ -14,29 +14,22 @@ const PostCardHeader = ({
         ? `${String(visibility).charAt(0).toUpperCase()}${String(visibility).slice(1)}`
         : '';
 
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-    const [photoUrl, setPhotoUrl] = React.useState(author?.profile_photo || defaultAvatarSrc);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [photoKey, setPhotoKey] = useState(Date.now()); // force re-render
     const menuRef = React.useRef(null);
 
-    // Update photoUrl whenever author.profile_photo changes
-    React.useEffect(() => {
-        if (author?.profile_photo) {
-            // Add cache-buster to force reload
-            setPhotoUrl(`${author.profile_photo}?t=${Date.now()}`);
-        } else {
-            setPhotoUrl(defaultAvatarSrc);
-        }
-    }, [author?.profile_photo, defaultAvatarSrc]);
+    // Force img reload whenever author.profile_photo changes
+    useEffect(() => {
+        setPhotoKey(Date.now());
+    }, [author?.profile_photo]);
 
-    // Handle clicking outside dropdown to close it
-    React.useEffect(() => {
+    // Close dropdown on outside click
+    useEffect(() => {
         if (!isMenuOpen) return;
-
         const handleDocClick = (e) => {
             if (!menuRef.current) return;
             if (!menuRef.current.contains(e.target)) setIsMenuOpen(false);
         };
-
         document.addEventListener('mousedown', handleDocClick);
         return () => document.removeEventListener('mousedown', handleDocClick);
     }, [isMenuOpen]);
@@ -51,20 +44,21 @@ const PostCardHeader = ({
         onEdit?.();
     };
 
+    const imgSrc = author?.profile_photo || defaultAvatarSrc;
+
     return (
         <div className="_feed_inner_timeline_post_top">
             <div className="_feed_inner_timeline_post_box">
                 <div className="_feed_inner_timeline_post_box_image">
                     <Link to={`/profile/${author?.id}`}>
                         <img
-                            src={photoUrl}
-                            alt=""
+                            key={photoKey} // forces React to reload image
+                            src={imgSrc}
+                            alt="Profile"
                             className="_post_img"
                             style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                             onError={(e) => {
-                                if (!e.currentTarget.src.endsWith(defaultAvatarSrc)) {
-                                    e.currentTarget.src = defaultAvatarSrc;
-                                }
+                                e.currentTarget.src = defaultAvatarSrc;
                             }}
                         />
                     </Link>
@@ -106,52 +100,17 @@ const PostCardHeader = ({
                                 type="button"
                                 className="_feed_timeline_dropdown_link"
                                 onClick={handleDelete}
-                                style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    width: '100%',
-                                    textAlign: 'left',
-                                    padding: 0,
-                                }}
+                                style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', padding: 0 }}
                             >
-                                <span aria-hidden="true" className="delete-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                        <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                        <path d="M6 6l1 16a2 2 0 002 2h6a2 2 0 002-2l1-16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                        <path d="M10 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                        <path d="M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    </svg>
-                                </span>
                                 Delete post
                             </button>
-
                             {onEdit && (
                                 <button
                                     type="button"
                                     className="_feed_timeline_dropdown_link"
                                     onClick={handleEdit}
-                                    style={{
-                                        border: 'none',
-                                        background: 'transparent',
-                                        width: '100%',
-                                        textAlign: 'left',
-                                        padding: 0,
-                                        marginTop: '10px',
-                                    }}
+                                    style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', padding: 0, marginTop: '10px' }}
                                 >
-                                    <span aria-hidden="true" className="delete-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                            <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                            <path
-                                                d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            />
-                                        </svg>
-                                    </span>
                                     Edit Post
                                 </button>
                             )}
