@@ -378,7 +378,18 @@ const PostCardComments = ({
                                                                     <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{r.content}</span>
                                                                 </p>
                                                             </div>
-                                                            <div className="_total_reactions" role="button" tabIndex={0}>
+                                                            <div
+                                                                className="_total_reactions"
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={() => onOpenCommentReactors?.(r.id)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        onOpenCommentReactors?.(r.id);
+                                                                    }
+                                                                }}
+                                                            >
                                                                 <div className="_total_react">
                                                                     <span className="_reaction_like">
                                                                         <svg

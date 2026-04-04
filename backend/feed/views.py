@@ -19,7 +19,7 @@ from .serializers import (
     CommentReactorSerializer,
 )
 from django.db.models import Q
-from .permissions import IsPostAuthor
+from .permissions import IsPostAuthor, IsCommentAuthor
 
 
 class PostPagination(PageNumberPagination):
@@ -268,10 +268,28 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action in {'update', 'partial_update', 'destroy'}:
+            return [IsAuthenticated(), IsCommentAuthor()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
-        return Comment.objects.select_related('author', 'post').prefetch_related('likes', 'likes__user').order_by('created_at')
+        user = self.request.user
+        return (
+            Comment.objects.select_related('author', 'post')
+            .prefetch_related('likes', 'likes__user')
+            .filter(Q(post__visibility='public') | Q(post__visibility='private', post__author=user))
+            .order_by('created_at')
+        )
 
     def perform_create(self, serializer):
+        post = serializer.validated_data.get('post')
+        if not post:
+            raise ValidationError({'post': 'Post is required.'})
+
+        if post.visibility != 'public' and post.author_id != self.request.user.id:
+            raise ValidationError({'post': 'You cannot comment on a private post you cannot access.'})
+
         serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['post'])
