@@ -42,7 +42,8 @@ const PostCardComments = ({
 
     const ordered = React.useMemo(() => {
         const list = Array.isArray(comments) ? [...comments] : [];
-        list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        // Newest first
+        list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         return list;
     }, [comments]);
 
@@ -66,8 +67,20 @@ const PostCardComments = ({
         ? topLevelComments.length
         : Math.min(topLevelComments.length, visibleTopLevelCount);
 
-    const visibleTopLevelComments = topLevelComments.slice(-effectiveVisibleCount);
-    const hiddenCount = Math.max(0, topLevelComments.length - visibleTopLevelComments.length);
+    const visibleTopLevelComments = topLevelComments.slice(0, effectiveVisibleCount);
+    const hiddenCount = Math.max(0, topLevelComments.length - effectiveVisibleCount);
+
+    const showViewLatest =
+        !disableCollapseExpand &&
+        canExpandCollapse &&
+        hiddenCount > 0 &&
+        effectiveVisibleCount <= resolvedCollapsedCount;
+
+    const showViewLess =
+        !disableCollapseExpand &&
+        canExpandCollapse &&
+        topLevelComments.length > resolvedCollapsedCount &&
+        effectiveVisibleCount > resolvedCollapsedCount;
 
     const handleSubmitReply = (e) => {
         e.preventDefault();
@@ -141,31 +154,19 @@ const PostCardComments = ({
             </div>
 
             <div className="_timline_comment_main">
-                {!disableCollapseExpand && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
+                {showViewLatest && (
                     <div className="_previous_comment">
                         <button
                             type="button"
                             className="_previous_comment_txt"
                             onClick={() => setVisibleTopLevelCount(resolvedExpandedCount)}
                         >
-                            View {hiddenCount} previous comments
+                            View latest comments
                         </button>
                     </div>
                 )}
 
-                {canExpandCollapse && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
-                    <div className="_previous_comment">
-                        <button
-                            type="button"
-                            className="_previous_comment_txt"
-                            onClick={() => setVisibleTopLevelCount(resolvedExpandedCount)}
-                        >
-                            View {hiddenCount} previous comments
-                        </button>
-                    </div>
-                )}
-
-                {canExpandCollapse && topLevelComments.length > resolvedCollapsedCount && effectiveVisibleCount > resolvedCollapsedCount && (
+                {showViewLess && (
                     <div className="_previous_comment">
                         <button
                             type="button"

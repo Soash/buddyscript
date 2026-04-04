@@ -387,7 +387,7 @@ const PostCard = ({ post }) => {
                 onToggleCommentLike={handleToggleCommentLike}
                 onOpenCommentReactors={openCommentReactorsModal}
                 onAddReply={handleAddReply}
-                previewLimitCollapsed={5}
+                previewLimitCollapsed={1}
                 previewLimitExpanded={5}
             />
 
