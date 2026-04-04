@@ -95,7 +95,25 @@ const PostCardHeader = ({
                                 onClick={handleDelete}
                                 style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', padding: 0 }}
                             >
-                                Delete post
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M9 3h6m-8 4h10m-9 0v13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7M10 11v7M14 11v7"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            opacity="0.75"
+                                        />
+                                    </svg>
+                                    <span>Delete post</span>
+                                </span>
                             </button>
                             {onEdit && (
                                 <button
@@ -104,7 +122,32 @@ const PostCardHeader = ({
                                     onClick={handleEdit}
                                     style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', padding: 0, marginTop: '10px' }}
                                 >
-                                    Edit Post
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M12 20h9"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                opacity="0.75"
+                                            />
+                                            <path
+                                                d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                opacity="0.75"
+                                            />
+                                        </svg>
+                                        <span>Edit Post</span>
+                                    </span>
                                 </button>
                             )}
                         </div>
