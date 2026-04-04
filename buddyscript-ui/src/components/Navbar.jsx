@@ -8,6 +8,17 @@ const Navbar = () => {
     const dispatch = useDispatch(); 
     const navigate = useNavigate();
     const { user: currentUser } = useSelector(state => state.auth);
+
+    const DEFAULT_AVATAR_SRC = '/assets/images/Avatar.png';
+    const profilePhotoSrc = (typeof currentUser?.profile_photo === 'string' && currentUser.profile_photo.trim())
+        ? currentUser.profile_photo
+        : DEFAULT_AVATAR_SRC;
+
+    const handleProfilePhotoError = (e) => {
+        // Prevent infinite loop if the default image can't be loaded for any reason.
+        e.currentTarget.onerror = null;
+        e.currentTarget.src = DEFAULT_AVATAR_SRC;
+    };
     
     // States
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -101,9 +112,10 @@ const Navbar = () => {
                         <div className="_header_nav_profile">
                             <div className="_header_nav_profile_image">
                                 <img 
-                                    src={currentUser?.profile_photo} 
+                                    src={profilePhotoSrc} 
                                     alt="Profile" 
                                     className="_nav_profile_img" 
+                                    onError={handleProfilePhotoError}
                                     style={{ borderRadius: '50%', objectFit: 'cover' }}
                                 />
                             </div>
@@ -126,7 +138,7 @@ const Navbar = () => {
 
                                 <div className="_nav_profile_dropdown_info">
                                     <div className="_nav_profile_dropdown_image">
-                                        <img src={currentUser?.profile_photo} alt="Image" className="_nav_drop_img" style={{ borderRadius: '50%', objectFit: 'cover' }} />
+                                        <img src={profilePhotoSrc} alt="Image" className="_nav_drop_img" onError={handleProfilePhotoError} style={{ borderRadius: '50%', objectFit: 'cover' }} />
                                     </div>
                                     <div className="_nav_profile_dropdown_info_txt">
                                         <h4 className="_nav_dropdown_title">{currentUser?.first_name} {currentUser?.last_name}</h4>
