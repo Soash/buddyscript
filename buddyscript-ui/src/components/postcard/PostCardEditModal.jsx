@@ -62,7 +62,7 @@ const PostCardEditModal = ({
         });
         setNewImages([]);
         setNewImageCaptions([]);
-    }, [isOpen, initialContent, initialVisibility, initialImages]);
+    }, [isOpen]);
 
     React.useEffect(() => {
         return () => {
