@@ -66,7 +66,13 @@ const Login = () => {
 							<div className="_social_login_content_bottom_txt _mar_b40"> <span>Or</span>
 							</div>
 							<form className="_social_login_form" onSubmit={handleSubmit}>
-                                {error && <div className="alert alert-danger">{typeof error === 'string' ? error : JSON.stringify(error)}</div>}
+                                {error && (
+									<div className="alert alert-danger">
+										{typeof error === 'string'
+											? error
+											: error?.detail || 'Something went wrong'}
+									</div>
+								)}
 								<div className="row">
 									<div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
 										<div className="_social_login_form_input _mar_b14">
