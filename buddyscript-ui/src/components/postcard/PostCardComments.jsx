@@ -60,6 +60,7 @@ const PostCardComments = ({
 
     const resolvedCollapsedCount = Math.max(1, previewLimitCollapsed);
     const resolvedExpandedCount = Math.max(resolvedCollapsedCount, previewLimitExpanded);
+    const canExpandCollapse = !disableCollapseExpand && resolvedExpandedCount > resolvedCollapsedCount;
 
     const effectiveVisibleCount = disableCollapseExpand
         ? topLevelComments.length
@@ -140,7 +141,7 @@ const PostCardComments = ({
             </div>
 
             <div className="_timline_comment_main">
-                {!disableCollapseExpand && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
+                {canExpandCollapse && hiddenCount > 0 && effectiveVisibleCount <= resolvedCollapsedCount && (
                     <div className="_previous_comment">
                         <button
                             type="button"
@@ -152,7 +153,7 @@ const PostCardComments = ({
                     </div>
                 )}
 
-                {!disableCollapseExpand && topLevelComments.length > resolvedCollapsedCount && effectiveVisibleCount > resolvedCollapsedCount && (
+                {canExpandCollapse && topLevelComments.length > resolvedCollapsedCount && effectiveVisibleCount > resolvedCollapsedCount && (
                     <div className="_previous_comment">
                         <button
                             type="button"
