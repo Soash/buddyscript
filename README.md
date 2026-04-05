@@ -1,7 +1,7 @@
 # BuddyScript
 - **Backend**: Django REST API (JWT auth)
 - **Frontend**: React + Vite
-- **Databse**: PostgreSQL
+- **Database**: PostgreSQL
 
 ## Live server
 - http://139.59.3.116/
