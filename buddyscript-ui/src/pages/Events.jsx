@@ -38,10 +38,12 @@ const Events = () => {
     const filteredEvents = useMemo(() => {
         const q = searchQuery.trim().toLowerCase();
         if (!q) return sortedEvents;
+        if (q.length < 2) return [];
 
         return sortedEvents.filter((e) => {
-            const haystack = `${e?.name || ''} ${e?.location || ''} ${e?.details || ''}`.toLowerCase();
-            return haystack.includes(q);
+            const parts = `${e?.name || ''} ${e?.location || ''} ${e?.details || ''}`.toLowerCase();
+            const tokens = parts.split(/[^a-z0-9]+/i).filter(Boolean);
+            return tokens.some((t) => t.startsWith(q));
         });
     }, [sortedEvents, searchQuery]);
 
