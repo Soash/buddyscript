@@ -325,13 +325,15 @@ const Navbar = () => {
                                         </a>
                                     </li>
                                     <div className="_header_mobile_toggle">
-                                        <form action="#">
-                                            <button type="submit" className="_header_mobile_btn_link" value="go to mobile menu">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="14" fill="none" viewBox="0 0 18 14">
-                                                    <path stroke="#666" strokeLinecap="round" strokeWidth="1.5" d="M1 1h16M1 7h16M1 13h16"></path>
-                                                </svg>                                                    
-                                            </button>
-                                        </form>
+                                        <Link
+                                            to="/feed"
+                                            className="_header_mobile_btn_link"
+                                            aria-label="Go to feed"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="14" fill="none" viewBox="0 0 18 14">
+                                                <path stroke="#666" strokeLinecap="round" strokeWidth="1.5" d="M1 1h16M1 7h16M1 13h16"></path>
+                                            </svg>
+                                        </Link>
                                     </div>
                                 </ul>
                             </div>
