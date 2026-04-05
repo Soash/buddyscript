@@ -21,7 +21,7 @@
 - User profiles (name, role, bio, profile photo).
 - Social graph: follow/unfollow, friends + friend requests.
 - Feed: posts (public/private), comments, and multi-reactions (`like` / `love` / `haha`).
-- Events: create events and RSVP.
+- Events: create/edit/delete events, RSVP, and search.
 
 Most APIs require an authenticated user by default.
 
@@ -34,11 +34,82 @@ Most APIs require an authenticated user by default.
 - **You Might Like (Right Sidebar)**: shows 1 random user you don’t follow, with an **Ignore** action to load a different suggestion.
   - Supports an `exclude_id` query param to avoid immediately repeating the last suggestion.
 - **Feed performance**: paginated feed endpoint + **infinite scroll** on the frontend (does not fetch all posts at once).
+- **Events system**: create/edit/delete events, RSVP, and a simple search (2+ characters, starts-with matching).
 - **Quality-of-life**: default avatar fallback when a profile photo is missing/broken.
 
 ## Repo structure
 - `backend/` — Django project (API is mounted under `/api/`)
 - `buddyscript-ui/` — React + Vite frontend
+
+## Architecture
+
+### Component structure
+- **Pages** live in `buddyscript-ui/src/pages/` (e.g. Feed, Events, Find People).
+- **Reusable UI** lives in `buddyscript-ui/src/components/` (e.g. `PostCard` + its subcomponents).
+- **API client** is centralized in `buddyscript-ui/src/api/axios.js`.
+- **State** is organized in Redux Toolkit slices under `buddyscript-ui/src/store/`.
+
+### How state is managed
+- **Global app state**: Redux Toolkit (`authSlice`, `feedSlice`, `eventsSlice`, etc.). Async calls use `createAsyncThunk` and store loading/error flags.
+- **Local UI state**: `useState` inside components/pages for UI-only concerns (open/close menus, input text, toggles).
+
+### Avoiding unnecessary re-renders
+- Derived lists (sorting/filtering) are memoized with `useMemo` in pages like Events/Find People.
+- Redux updates are scoped to the affected entities (e.g. updating a single post’s reaction counts instead of refetching the whole feed).
+- Backend supports pagination so the UI doesn’t render/fetch everything at once.
+
+### Why Django + DRF
+- Fast to build a secure API with clear patterns (serializers/viewsets/permissions).
+- Built-in admin + auth model support.
+- DRF integrates cleanly with JWT auth and permission-based authorization.
+
+### Why JWT
+- Works well for SPA + API architecture.
+- Tokens are sent in the `Authorization: Bearer <token>` header (simple with Axios interceptors).
+
+### How JWT is handled (current implementation)
+- Tokens are stored in **`localStorage`** (`access_token`, `refresh_token`).
+- `buddyscript-ui/src/api/axios.js` attaches the access token to every request.
+- On `401`, the app clears tokens and redirects to `/login`.
+
+**Token storage tradeoffs**
+- Current approach (**localStorage**) is simple, but increases risk if an XSS bug exists (JS can read tokens).
+- A more secure production approach is often:
+  - Store refresh token in **HttpOnly + Secure + SameSite** cookie,
+  - Keep access token short-lived (memory or short-lived storage),
+  - Add CSP + strict input handling to reduce XSS risk.
+
+**XSS / CSRF notes**
+- With `Authorization` headers (not cookies), classic CSRF is less of a concern.
+- The main risk becomes **XSS** (because tokens are accessible to JS when stored in `localStorage`).
+
+### Authorization checks
+- DRF default permission is `IsAuthenticated` for most endpoints.
+- Object-level rules are enforced server-side (e.g. only authors can update/delete their posts/events; comment edit/delete restricted to comment author).
+- Feed visibility is enforced in querysets (`public` vs `private`).
+
+### Feed structure
+- Backend: `GET /api/feed/posts/` returns a paginated list of visible posts.
+- Frontend: `Feed` uses pagination + infinite scroll; `PostCard` renders post content, media, reactions, comments, and modals.
+
+### Scaling notes (what we’d do next)
+- Database: PostgreSQL + indexes on common filters (`created_at`, `author_id`, visibility).
+- Media: store uploads on object storage (S3-compatible) + CDN.
+- Performance: caching for hot endpoints, background jobs (Celery/RQ) for heavy tasks.
+- Search: move to Postgres full-text search / trigram indexes if datasets grow.
+
+## AI Workflow
+- Used **Gemini 3.1 Pro** and **GPT-5.2** as pair-programmers for:
+  - Finding where a feature lives (repo exploration),
+  - Drafting focused patches (React UI changes / DRF permissions),
+  - Generating edge-case checklists (auth, permissions, upload flows).
+- Prompting style that worked well:
+  - “Find the file responsible for X and show the exact call chain.”
+  - “Make the smallest patch that implements Y; don’t redesign UI.”
+  - “After patching, run a build/check and report results.”
+- How AI mistakes were handled:
+  - When behavior was misunderstood (e.g. comment preview controls), iterated with precise UX clarification and adjusted implementation.
+  - Validated changes by reading the actual code paths and running `npm run build` / Django checks.
 
 ## Prerequisites
 - **Python** (recommended 3.11+)
