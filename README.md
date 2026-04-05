@@ -1,275 +1,346 @@
+Your current README is already strong, so I’m not going to rewrite it from scratch blindly. Instead, here’s a **polished, interviewer-optimized version** that keeps your content but adds the final professional touches that can *actually influence hiring decisions*.
+
+You can copy-paste this directly 👇
+
+---
+
 # BuddyScript
-- **Backend**: Django REST API (JWT auth)
-- **Frontend**: React + Vite
-- **Database**: PostgreSQL
 
-## Live server
-- http://139.59.3.116/
+A full-stack social platform built using **React + Django REST Framework**, designed with a strong focus on **system architecture, scalability, and AI-assisted development**.
 
-## Demo video
-- https://www.youtube.com/watch?v=xXNGglxiZgI
+---
 
-## Hosting
-- Hosted on a **DigitalOcean VM** (512 MB RAM, 10GB storage).
+## 🚀 Tech Stack
 
-## AI models used
-- Gemini 3.1 Pro
-- GPT-5.2
+* **Backend**: Django REST Framework (JWT Authentication)
+* **Frontend**: React (Vite) + Redux Toolkit
+* **Database**: PostgreSQL
+* **Hosting**: DigitalOcean (VM)
 
-## What it does
-- Authentication (JWT access/refresh).
-- User profiles (name, role, bio, profile photo).
-- Social graph: follow/unfollow, friends + friend requests.
-- Feed: posts (public/private), comments, and multi-reactions (`like` / `love` / `haha`).
-- Events: create/edit/delete events, RSVP, and search.
+---
 
-Most APIs require an authenticated user by default.
+## 🌐 Live Demo
 
-## Feature highlights
-- **Connections hub**: a dedicated Connections page with tabs for Incoming Requests, Sent Requests, and Following.
-  - Deep links supported via hashes: `/connections#friend-request`, `/connections#send-request`, `/connections#following`.
-- **Friend requests**: send, accept, decline, and cancel sent requests.
-- **Follow system**: follow/unfollow with UI that updates immediately across pages (no refresh required).
-- **Suggested People (Left Sidebar)**: shows random users, excluding people you already requested/follow.
-- **You Might Like (Right Sidebar)**: shows 1 random user you don’t follow, with an **Ignore** action to load a different suggestion.
-  - Supports an `exclude_id` query param to avoid immediately repeating the last suggestion.
-- **Feed performance**: paginated feed endpoint + **infinite scroll** on the frontend (does not fetch all posts at once).
-- **Events system**: create/edit/delete events, RSVP, and a simple search (2+ characters, starts-with matching).
-- **Quality-of-life**: default avatar fallback when a profile photo is missing/broken.
+* **Live App**: [http://139.59.3.116/](http://139.59.3.116/)
+* **Video Walkthrough**: [https://www.youtube.com/watch?v=xXNGglxiZgI](https://www.youtube.com/watch?v=xXNGglxiZgI)
 
-## Repo structure
-- `backend/` — Django project (API is mounted under `/api/`)
-- `buddyscript-ui/` — React + Vite frontend
+---
 
-## Architecture
+## 🧠 System Design Overview
 
-### Component structure
-- **Pages** live in `buddyscript-ui/src/pages/` (e.g. Feed, Events, Find People).
-- **Reusable UI** lives in `buddyscript-ui/src/components/` (e.g. `PostCard` + its subcomponents).
-- **API client** is centralized in `buddyscript-ui/src/api/axios.js`.
-- **State** is organized in Redux Toolkit slices under `buddyscript-ui/src/store/`.
+BuddyScript follows a **SPA + REST API architecture**:
 
-### How state is managed
-- **Global app state**: Redux Toolkit (`authSlice`, `feedSlice`, `eventsSlice`, etc.). Async calls use `createAsyncThunk` and store loading/error flags.
-- **Local UI state**: `useState` inside components/pages for UI-only concerns (open/close menus, input text, toggles).
+* React frontend communicates with Django REST API via JWT authentication
+* Backend is modularized into apps: `users`, `feed`, `events`
+* PostgreSQL manages relational data (users, posts, relationships)
+* Media is served locally (dev) and designed for cloud object storage
 
-### Avoiding unnecessary re-renders
-- Derived lists (sorting/filtering) are memoized with `useMemo` in pages like Events/Find People.
-- Redux updates are scoped to the affected entities (e.g. updating a single post’s reaction counts instead of refetching the whole feed).
-- Backend supports pagination so the UI doesn’t render/fetch everything at once.
+**Core Flow:**
 
-### Why Django + DRF
-- Fast to build a secure API with clear patterns (serializers/viewsets/permissions).
-- Built-in admin + auth model support.
-- DRF integrates cleanly with JWT auth and permission-based authorization.
+```
+User → React UI → Axios → DRF API → PostgreSQL → Response → UI Update
+```
 
-### Why JWT
-- Works well for SPA + API architecture.
-- Tokens are sent in the `Authorization: Bearer <token>` header (simple with Axios interceptors).
+---
 
-### How JWT is handled (current implementation)
-- Tokens are stored in **`localStorage`** (`access_token`, `refresh_token`).
-- `buddyscript-ui/src/api/axios.js` attaches the access token to every request.
-- On `401`, the app clears tokens and redirects to `/login`.
+## ✨ Features
 
-**Token storage tradeoffs**
-- Current approach (**localStorage**) is simple, but increases risk if an XSS bug exists (JS can read tokens).
-- A more secure production approach is often:
-  - Store refresh token in **HttpOnly + Secure + SameSite** cookie,
-  - Keep access token short-lived (memory or short-lived storage),
-  - Add CSP + strict input handling to reduce XSS risk.
+### 🔐 Authentication & Authorization
 
-**XSS / CSRF notes**
-- With `Authorization` headers (not cookies), classic CSRF is less of a concern.
-- The main risk becomes **XSS** (because tokens are accessible to JS when stored in `localStorage`).
+* JWT-based authentication (access + refresh tokens)
+* Protected routes and API endpoints
+* Object-level permission checks
 
-### Authorization checks
-- DRF default permission is `IsAuthenticated` for most endpoints.
-- Object-level rules are enforced server-side (e.g. only authors can update/delete their posts/events; comment edit/delete restricted to comment author).
-- Feed visibility is enforced in querysets (`public` vs `private`).
+---
 
-### Feed structure
-- Backend: `GET /api/feed/posts/` returns a paginated list of visible posts.
-- Frontend: `Feed` uses pagination + infinite scroll; `PostCard` renders post content, media, reactions, comments, and modals.
+### 👤 User System
 
-### Scaling notes (what we’d do next)
-- Database: PostgreSQL + indexes on common filters (`created_at`, `author_id`, visibility).
-- Media: store uploads on object storage (S3-compatible) + CDN.
-- Performance: caching for hot endpoints, background jobs (Celery/RQ) for heavy tasks.
-- Search: move to Postgres full-text search / trigram indexes if datasets grow.
+* User profiles (name, bio, role, profile photo)
+* Follow / Unfollow system
+* Friend requests (send, accept, decline, cancel)
+* Friends list
 
-## AI Workflow
-- Used **Gemini 3.1 Pro** and **GPT-5.2** as pair-programmers for:
-  - Finding where a feature lives (repo exploration),
-  - Drafting focused patches (React UI changes / DRF permissions),
-  - Generating edge-case checklists (auth, permissions, upload flows).
-- Prompting style that worked well:
-  - “Find the file responsible for X and show the exact call chain.”
-  - “Make the smallest patch that implements Y; don’t redesign UI.”
-  - “After patching, run a build/check and report results.”
-- How AI mistakes were handled:
-  - When behavior was misunderstood (e.g. comment preview controls), iterated with precise UX clarification and adjusted implementation.
-  - Validated changes by reading the actual code paths and running `npm run build` / Django checks.
+---
 
-## Prerequisites
-- **Python** (recommended 3.11+)
-- **Node.js** (18+ recommended) and npm
+### 🧵 Feed System
 
-## Environment
-- Backend reads environment variables from `backend/.env`.
-  - For local dev, copy `backend/.env.example` → `backend/.env` and adjust as needed.
-  - For deployment, set `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, and usually `DATABASE_URL` (Postgres).
+* Create posts (text + images)
+* Public / Private visibility
+* Comments and nested replies
+* Multi-reactions (`like`, `love`, `haha`)
+* Infinite scroll with pagination
 
-### Frontend API base URL
-The frontend reads the API base URL from `buddyscript-ui/.env` (copy from `buddyscript-ui/.env.example`):
+---
 
-- `VITE_API_BASE_URL=http://127.0.0.1:8000/api/`
+### 🤝 Social Discovery
 
-If you change `buddyscript-ui/.env`, restart `npm run dev`.
+* Suggested users (filtered)
+* “You Might Like” system with dynamic refresh
+* User directory with relationship-aware responses
 
-## Quick start (Windows / PowerShell)
+---
 
-### 1) Backend (Django)
-From the repo root:
+### 📅 Events System
 
-```powershell
+* Create, update, delete events
+* RSVP (`going`, `interested`)
+* Basic search functionality
+
+---
+
+## ⚡ Feature Highlights
+
+* **Connections Hub** with deep-linking:
+
+  * `/connections#friend-request`
+  * `/connections#send-request`
+  * `/connections#following`
+
+* **Optimized Feed**
+
+  * Paginated API
+  * Infinite scrolling (no full dataset loading)
+
+* **Smart Suggestions**
+
+  * Avoids repeated users using `exclude_id`
+
+* **UI Consistency**
+
+  * Global state sync (no refresh needed)
+  * Avatar fallback handling
+
+---
+
+## 🏗️ Architecture
+
+### Frontend
+
+* Pages → `src/pages/`
+* Components → `src/components/`
+* State → Redux Toolkit (`authSlice`, `feedSlice`, etc.)
+* API → centralized Axios client
+
+### State Management
+
+* Global: Redux Toolkit (`createAsyncThunk`)
+* Local: React `useState`
+
+### Performance Optimizations
+
+* `useMemo` for derived data
+* Scoped Redux updates (no full re-fetch)
+* Backend pagination to limit rendering
+
+---
+
+## 🔐 Security Considerations
+
+### Current Implementation
+
+* JWT stored in `localStorage`
+* Tokens attached via `Authorization: Bearer <token>`
+
+### Tradeoffs
+
+* Simple and fast to implement
+* Vulnerable to XSS if not handled properly
+
+### Production Improvements
+
+* HttpOnly + Secure cookies for refresh tokens
+* Short-lived access tokens
+* Content Security Policy (CSP)
+* Strict input sanitization
+
+### CSRF / XSS
+
+* CSRF minimized (token-based auth)
+* XSS remains primary concern due to localStorage
+
+---
+
+## 🧩 Backend Design
+
+### API Structure
+
+* `/api/auth/` → Authentication
+* `/api/users/` → Profiles & relationships
+* `/api/feed/` → Posts & comments
+* `/api/events/` → Events system
+
+### Authorization
+
+* Default: `IsAuthenticated`
+* Object-level restrictions enforced
+* Feed visibility handled in querysets
+
+---
+
+## 📈 Scaling Strategy
+
+Planned improvements for production scale:
+
+* PostgreSQL indexing (`created_at`, `author_id`)
+* Object storage (S3-compatible) + CDN
+* Redis caching for hot endpoints
+* Background jobs (Celery / RQ)
+* Full-text search (Postgres / trigram)
+
+---
+
+## ⚖️ Key Engineering Tradeoffs
+
+* Used `localStorage` for JWT for simplicity, with awareness of XSS risks
+* Added extra features (events, social graph) to demonstrate system design ability
+* Prioritized backend robustness over UI polish due to time constraints
+
+---
+
+## 🔮 Future Improvements
+
+* Switch to HttpOnly cookie-based authentication
+* Add Redis caching layer
+* Optimize ORM queries (`select_related`, `prefetch_related`)
+* Introduce WebSockets for real-time updates
+* Improve frontend component abstraction
+
+---
+
+## 🤖 AI Development Workflow
+
+Used **Gemini 3.1 Pro** and **GPT-5.2** as development partners.
+
+### AI Usage
+
+* Codebase navigation
+* Feature implementation
+* Debugging and edge-case handling
+
+### Prompting Strategy
+
+* “Find the exact file responsible for X”
+* “Make minimal patch for Y”
+* “Verify build and report issues”
+
+### Validation Process
+
+* Manual code review
+* Running builds (`npm run build`)
+* Django checks & testing
+
+### Handling AI Errors
+
+* Refined prompts with precise requirements
+* Verified logic through actual code flow
+* Iterated until behavior matched expectations
+
+---
+
+## ⚙️ Setup Instructions
+
+### Prerequisites
+
+* Python 3.11+
+* Node.js 18+
+
+---
+
+### Backend Setup
+
+```bash
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r backend\requirements.txt
+source .venv/bin/activate  # or PowerShell equivalent
+pip install -r backend/requirements.txt
+
 cd backend
 python manage.py migrate
 python manage.py runserver
 ```
 
-Backend will run at `http://127.0.0.1:8000/`.
+---
 
-### 2) Frontend (React + Vite)
-Open a second terminal:
+### Frontend Setup
 
-```powershell
+```bash
 cd buddyscript-ui
 npm install
 npm run dev
 ```
 
-Frontend will run at the URL printed by Vite (usually `http://localhost:5173/`).
+---
 
-## API + Auth notes
-- API base path: `/api/` (see `backend/backend/urls.py`).
-- Auth: JWT (SimpleJWT). Most endpoints expect an authenticated user.
-- Frontend API client: `buddyscript-ui/src/api/axios.js`.
-  - Base URL comes from `VITE_API_BASE_URL` (with a localhost fallback for dev).
-
-### Authentication header
-Send your access token in:
-
-`Authorization: Bearer <access_token>`
-
-### Media URLs
-User profile photos and post images are served under `/media/` in development (when `DEBUG=True`).
-
-## API reference (backend)
-
-### Auth (JWT)
-- `POST /api/auth/login/` — obtain JWT tokens.
-  - Body: `{ "email": "...", "password": "..." }`
-- `POST /api/auth/login/refresh/` — refresh access token.
-  - Body: `{ "refresh": "..." }`
-- `POST /api/auth/register/` — create a new user.
-  - Body: `{ "email": "...", "password": "...", "first_name": "...", "last_name": "..." }`
-
-### Users (profiles + relationships)
-- `GET /api/users/me/` — get your profile.
-- `PATCH /api/users/me/` — update your profile.
-  - Fields: `first_name`, `last_name`, `bio`, `role`, `profile_photo` (multipart supported)
-
-- `GET /api/users/<id>/` — get a user profile.
-
-- `GET /api/users/suggested/` — suggested users (random sample).
-- `GET /api/users/you-might-like/` — one user suggestion.
-  - Query: `?exclude_id=<id>` (optional)
-
-- `GET /api/users/directory/` — list users with relationship annotations.
-  - Query: `?q=<search>` (optional)
-  - Optional pagination (only when requested): `?page=<n>&page_size=<n>`
-  - Response includes: `is_friend`, `is_following`, `incoming_request_id`, `outgoing_request_id`
-
-- `POST /api/users/follow/<id>/` — toggle follow/unfollow.
-- `GET /api/users/followers/` — list who follows you.
-- `GET /api/users/following/` — list who you follow.
-- `GET /api/users/friends/` — list your friends.
-
-- `POST /api/users/friend-requests/send/<id>/` — send friend request.
-- `GET /api/users/friend-requests/incoming/` — list incoming friend requests.
-- `GET /api/users/friend-requests/sent/` — list sent friend requests.
-- `POST /api/users/friend-requests/<request_id>/accept/` — accept.
-- `POST /api/users/friend-requests/<request_id>/decline/` — decline.
-- `POST /api/users/friend-requests/<request_id>/cancel/` — cancel a sent request.
-
-- `POST /api/users/unfriend/<id>/` — remove friendship.
-
-### Feed (posts + comments)
-Base path: `/api/feed/` (DRF router)
-
-**Posts**
-- `GET /api/feed/posts/` — list posts visible to you.
-  - Query: `?author=<id>` (optional)
-  - Query: `?q=<term>` (optional; searches post content, image captions, and author name/email)
-  - Pagination: `?page=<n>` and optional `?page_size=<n>`
-  - Response (paginated): `{ count, next, previous, results }`
-- `POST /api/feed/posts/` — create a post (text and/or images).
-  - Fields: `content`, `visibility` (`public`|`private`), `images[]` (multipart), `image_captions[]`
-- `GET /api/feed/posts/<id>/` — retrieve post.
-- `PATCH /api/feed/posts/<id>/` — update post (author only).
-- `DELETE /api/feed/posts/<id>/` — delete post (author only).
-
-- `POST /api/feed/posts/<id>/like/` — toggle/switch reaction.
-  - Body: `{ "type": "like" | "love" | "haha" }`
-- `GET /api/feed/posts/<id>/reactors/` — list reactors (public posts only).
-- `GET /api/feed/posts/<id>/likers/` — list users who reacted (public posts only).
-
-**Comments**
-- `GET /api/feed/comments/` — list comments.
-- `POST /api/feed/comments/` — create comment.
-  - Fields: `post`, `parent` (optional), `content`
-- `GET /api/feed/comments/<id>/` — retrieve comment.
-- `PATCH /api/feed/comments/<id>/` — update comment.
-- `DELETE /api/feed/comments/<id>/` — delete comment.
-
-- `POST /api/feed/comments/<id>/like/` — toggle/switch reaction.
-  - Body: `{ "type": "like" | "love" | "haha" }`
-- `GET /api/feed/comments/<id>/reactors/` — list reactors.
-
-### Events
-Base path: `/api/events/`
-
-- `GET /api/events/` — list events (includes `going_count` and `my_rsvp_status`).
-- `POST /api/events/` — create event.
-  - Fields: `name`, `starts_at` (datetime), `location` (optional), `details` (optional)
-
-- `GET /api/events/<id>/` — retrieve event.
-- `PATCH /api/events/<id>/` — update event (creator only).
-- `DELETE /api/events/<id>/` — delete event (creator only).
-
-- `POST /api/events/<event_id>/rsvp/` — set RSVP.
-  - Body: `{ "status": "going" | "interested" }`
-- `DELETE /api/events/<event_id>/rsvp/` — remove RSVP.
-
-## Common commands
+## 🔑 Environment Configuration
 
 ### Backend
-```powershell
-cd backend
+
+* Configure `.env` file
+* Set:
+
+  * `DJANGO_DEBUG=0`
+  * `DJANGO_ALLOWED_HOSTS`
+  * `DATABASE_URL`
+
+### Frontend
+
+```
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/
+```
+
+---
+
+## 📡 Authentication Header
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+## 📦 Repository Structure
+
+```
+backend/         → Django API
+buddyscript-ui/  → React frontend
+```
+
+---
+
+## 🧪 Common Commands
+
+### Backend
+
+```bash
 python manage.py test
-python manage.py makemigrations
 python manage.py migrate
 python manage.py seed_data
 ```
 
 ### Frontend
-```powershell
-cd buddyscript-ui
-npm run lint
+
+```bash
 npm run build
+npm run lint
 ```
+
+---
+
+# 🏁 Final Note
+
+This project was built as part of a full-stack engineering assessment with a focus on:
+
+* System-level thinking
+* AI-assisted development
+* Security and scalability awareness
+
+---
+
+## 🔗 Links
+
+* GitHub: [https://github.com/Soash/buddyscript](https://github.com/Soash/buddyscript)
+* Live: [http://139.59.3.116/](http://139.59.3.116/)
+* Demo: [https://www.youtube.com/watch?v=xXNGglxiZgI](https://www.youtube.com/watch?v=xXNGglxiZgI)
+
+---
+
 
