@@ -1,9 +1,3 @@
-Your current README is already strong, so I’m not going to rewrite it from scratch blindly. Instead, here’s a **polished, interviewer-optimized version** that keeps your content but adds the final professional touches that can *actually influence hiring decisions*.
-
-You can copy-paste this directly 👇
-
----
-
 # BuddyScript
 
 A full-stack social platform built using **React + Django REST Framework**, designed with a strong focus on **system architecture, scalability, and AI-assisted development**.
