@@ -8,7 +8,7 @@ A full-stack social platform built using **React + Django REST Framework**, focu
 
 * **Backend**: Django REST Framework (JWT Authentication)
 * **Frontend**: React (Vite) + Redux Toolkit
-* **Database**: PostgreSQL
+* **Database**: SQLite (default for local dev) / PostgreSQL (production via `DATABASE_URL`)
 * **Hosting**: DigitalOcean VM
 
 ---
@@ -20,14 +20,83 @@ A full-stack social platform built using **React + Django REST Framework**, focu
 
 ---
 
+## 🚢 Deployment (DigitalOcean)
+
+This project is hosted on a **DigitalOcean VM**. Below is a typical, production-style setup that matches this repo’s backend configuration (Gunicorn + WhiteNoise).
+
+### Backend (Django API)
+
+**One common approach**
+
+* Run the API using **Gunicorn** (installed in `backend/requirements.txt`).
+* Serve **static files** via **WhiteNoise** (enabled when `DJANGO_DEBUG=0`).
+* Serve **media uploads** (e.g., profile photos, post images) from disk (often via Nginx).
+
+**Example commands**
+
+```bash
+cd backend
+pip install -r requirements.txt
+
+# Ensure env vars exist in backend/.env
+python manage.py migrate
+python manage.py collectstatic --noinput
+
+gunicorn backend.wsgi:application --bind 0.0.0.0:8000
+```
+
+### Frontend (React SPA)
+
+**One common approach**
+
+* Build the SPA with Vite (`npm run build`).
+* Serve the generated `dist/` via **Nginx**.
+* Reverse-proxy API requests (e.g. `/api/`) to Gunicorn.
+
+**Example commands**
+
+```bash
+cd buddyscript-ui
+npm install
+npm run build
+```
+
+### Nginx (high-level)
+
+Typical routing for a single-domain deployment:
+
+* `/` → serves the React app (`index.html` + static assets)
+* `/api/` → proxies to the Django API (Gunicorn)
+* `/media/` → serves Django media uploads
+
+> Note: Exact Nginx + systemd configs depend on your server layout, domain, and TLS.
+
+### Recommended production env vars (backend/.env)
+
+Minimum set for a safe-ish production configuration:
+
+* `DJANGO_DEBUG=0`
+* `DJANGO_SECRET_KEY=<long-random-secret>`
+* `DJANGO_ALLOWED_HOSTS=<your-domain-or-ip>`
+* `DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/DBNAME`
+* `CORS_ALLOW_ALL_ORIGINS=0`
+* `CORS_ALLOWED_ORIGINS=https://your-frontend-domain`
+* `DJANGO_CSRF_TRUSTED_ORIGINS=https://your-frontend-domain`
+
+Optional (behind a TLS-terminating proxy):
+
+* `DJANGO_SECURE_SSL_REDIRECT=1`
+
+---
+
 ## 🧠 System Design Overview
 
 BuddyScript follows a **SPA + REST API architecture**:
 
 * React frontend communicates with Django REST API via JWT
 * Backend is modularized into apps: `users`, `feed`, `events`
-* PostgreSQL manages relational data
-* Media is designed to scale to object storage (S3-compatible)
+* Relational DB: SQLite in dev by default, PostgreSQL in production
+* Media: stored on local disk via Django `MEDIA_ROOT` (can be migrated to S3-compatible storage)
 
 **Core Flow:**
 
@@ -147,8 +216,8 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 
 ### CSRF / XSS
 
-* CSRF minimized (no cookie auth)
-* XSS is the primary risk (due to localStorage)
+* CSRF risk is low in the current design because JWTs are sent via `Authorization` header (not automatically by the browser like cookies)
+* XSS is the primary risk (because access tokens live in `localStorage`)
 
 ---
 
@@ -222,11 +291,16 @@ Used **Gemini 3.1 Pro** and **GPT-5.2** as development partners.
 ### Backend
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r backend/requirements.txt
-
 cd backend
+python -m venv .venv
+
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
@@ -247,11 +321,14 @@ npm run dev
 
 ### Backend
 
-Configure `.env`:
+Create `backend/.env` (same folder as `manage.py`) and set:
 
 * `DJANGO_DEBUG=0`
 * `DJANGO_ALLOWED_HOSTS`
+* `DJANGO_SECRET_KEY`
 * `DATABASE_URL`
+* `CORS_ALLOW_ALL_ORIGINS=0` (recommended for production)
+* `CORS_ALLOWED_ORIGINS` (recommended for production)
 
 ### Frontend
 
