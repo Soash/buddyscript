@@ -6,6 +6,9 @@
 ## Live server
 - http://139.59.3.116/
 
+## Hosting
+- Hosted on a **DigitalOcean VM** (512 MB RAM, 10GB storage).
+
 ## AI models used
 - Gemini 3.1 Pro
 - GPT-5.2
