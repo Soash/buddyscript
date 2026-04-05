@@ -6,6 +6,9 @@
 ## Live server
 - http://139.59.3.116/
 
+## Demo video
+- https://www.youtube.com/watch?v=xXNGglxiZgI
+
 ## Hosting
 - Hosted on a **DigitalOcean VM** (512 MB RAM, 10GB storage).
 
