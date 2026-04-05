@@ -101,7 +101,7 @@ BuddyScript follows a **SPA + REST API architecture**:
 **Core Flow:**
 
 ```
-User → React UI → Axios → DRF API → PostgreSQL → Response → UI Update
+User → React UI → Axios → DRF API → Database (SQLite/PostgreSQL) → Response → UI Update
 ```
 
 ---
@@ -223,8 +223,8 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 
 ## 📈 Scaling Strategy
 
-* PostgreSQL indexing (`created_at`, `author_id`)
-* Object storage + CDN for media
+* DB indexing
+* Migrate media to object storage + CDN
 * Redis caching
 * Background jobs (Celery / RQ)
 * Full-text search (Postgres)
@@ -329,6 +329,7 @@ Create `backend/.env` (same folder as `manage.py`) and set:
 * `DATABASE_URL`
 * `CORS_ALLOW_ALL_ORIGINS=0` (recommended for production)
 * `CORS_ALLOWED_ORIGINS` (recommended for production)
+* `DJANGO_CSRF_TRUSTED_ORIGINS` (recommended for production)
 
 ### Frontend
 
