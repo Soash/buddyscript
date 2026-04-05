@@ -54,13 +54,21 @@ class PostViewSet(viewsets.ModelViewSet):
 
         q = (self.request.query_params.get('q') or '').strip()
         if q:
-            qs = qs.filter(
-                Q(content__icontains=q)
-                | Q(images__caption__icontains=q)
-                | Q(author__first_name__icontains=q)
-                | Q(author__last_name__icontains=q)
-                | Q(author__email__icontains=q)
-            ).distinct()
+            if len(q) < 2:
+                return qs.none()
+
+            terms = [t for t in q.split() if t]
+            q_filter = Q()
+            for term in terms:
+                q_filter |= (
+                    Q(content__istartswith=term)
+                    | Q(images__caption__istartswith=term)
+                    | Q(author__first_name__istartswith=term)
+                    | Q(author__last_name__istartswith=term)
+                    | Q(author__email__istartswith=term)
+                )
+
+            qs = qs.filter(q_filter).distinct()
         
         return qs
 

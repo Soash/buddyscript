@@ -55,13 +55,21 @@ class UsersDirectoryView(generics.ListAPIView):
 
         q = (self.request.query_params.get('q') or '').strip()
         if q:
-            qs = qs.filter(
-                Q(first_name__icontains=q)
-                | Q(last_name__icontains=q)
-                | Q(email__icontains=q)
-                | Q(role__icontains=q)
-                | Q(bio__icontains=q)
-            )
+            if len(q) < 2:
+                return qs.none()
+
+            terms = [t for t in q.split() if t]
+            q_filter = Q()
+            for term in terms:
+                q_filter |= (
+                    Q(first_name__istartswith=term)
+                    | Q(last_name__istartswith=term)
+                    | Q(email__istartswith=term)
+                    | Q(role__istartswith=term)
+                    | Q(bio__istartswith=term)
+                )
+
+            qs = qs.filter(q_filter)
 
         friendship_exists = Friendship.objects.filter(
             Q(user1=me, user2=OuterRef('pk')) | Q(user2=me, user1=OuterRef('pk'))

@@ -36,6 +36,11 @@ const Navbar = () => {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         const q = searchText.trim();
+        if (q && q.length < 2) {
+            // Avoid overly-broad searches (e.g. 1 character).
+            setIsMobileSearchOpen(false);
+            return;
+        }
         navigate(q ? `/feed?q=${encodeURIComponent(q)}` : '/feed');
         setIsMobileSearchOpen(false); // Close mobile search after submitting
     };

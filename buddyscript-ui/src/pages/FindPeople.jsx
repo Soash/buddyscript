@@ -47,12 +47,21 @@ const FindPeople = () => {
         const q = searchQuery.trim().toLowerCase();
         const matchesQuery = (u) => {
             if (!q) return true;
-            const name = `${u?.first_name || ''} ${u?.last_name || ''}`.trim();
-            const email = u?.email || '';
-            const role = u?.role || '';
-            const bio = u?.bio || '';
-            const haystack = `${name} ${email} ${role} ${bio}`.toLowerCase();
-            return haystack.includes(q);
+            if (q.length < 2) return false;
+
+            const parts = [
+                u?.first_name || '',
+                u?.last_name || '',
+                u?.email || '',
+                u?.role || '',
+                u?.bio || '',
+            ]
+                .join(' ')
+                .toLowerCase();
+
+            // Prefix match against individual "words" to avoid matching the middle of a string.
+            const tokens = parts.split(/[^a-z0-9]+/i).filter(Boolean);
+            return tokens.some((t) => t.startsWith(q));
         };
 
         const byFilter = (u) => {
