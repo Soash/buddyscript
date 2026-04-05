@@ -1,6 +1,6 @@
 # BuddyScript
 
-A full-stack social platform built using **React + Django REST Framework**, designed with a strong focus on **system architecture, scalability, and AI-assisted development**.
+A full-stack social platform built using **React + Django REST Framework**, focused on **system design, scalability, and AI-assisted development**.
 
 ---
 
@@ -9,14 +9,14 @@ A full-stack social platform built using **React + Django REST Framework**, desi
 * **Backend**: Django REST Framework (JWT Authentication)
 * **Frontend**: React (Vite) + Redux Toolkit
 * **Database**: PostgreSQL
-* **Hosting**: DigitalOcean (VM)
+* **Hosting**: DigitalOcean VM
 
 ---
 
 ## 🌐 Live Demo
 
 * **Live App**: [http://139.59.3.116/](http://139.59.3.116/)
-* **Video Walkthrough**: [https://www.youtube.com/watch?v=xXNGglxiZgI](https://www.youtube.com/watch?v=xXNGglxiZgI)
+* **Demo Video**: [https://www.youtube.com/watch?v=xXNGglxiZgI](https://www.youtube.com/watch?v=xXNGglxiZgI)
 
 ---
 
@@ -24,10 +24,10 @@ A full-stack social platform built using **React + Django REST Framework**, desi
 
 BuddyScript follows a **SPA + REST API architecture**:
 
-* React frontend communicates with Django REST API via JWT authentication
+* React frontend communicates with Django REST API via JWT
 * Backend is modularized into apps: `users`, `feed`, `events`
-* PostgreSQL manages relational data (users, posts, relationships)
-* Media is served locally (dev) and designed for cloud object storage
+* PostgreSQL manages relational data
+* Media is designed to scale to object storage (S3-compatible)
 
 **Core Flow:**
 
@@ -42,17 +42,17 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 ### 🔐 Authentication & Authorization
 
 * JWT-based authentication (access + refresh tokens)
-* Protected routes and API endpoints
-* Object-level permission checks
+* Protected routes and APIs
+* Object-level permission enforcement
 
 ---
 
 ### 👤 User System
 
-* User profiles (name, bio, role, profile photo)
-* Follow / Unfollow system
+* Profile management (name, bio, role, photo)
+* Follow / Unfollow
 * Friend requests (send, accept, decline, cancel)
-* Friends list
+* Friends system
 
 ---
 
@@ -60,7 +60,7 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 
 * Create posts (text + images)
 * Public / Private visibility
-* Comments and nested replies
+* Comments and replies
 * Multi-reactions (`like`, `love`, `haha`)
 * Infinite scroll with pagination
 
@@ -68,23 +68,23 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 
 ### 🤝 Social Discovery
 
-* Suggested users (filtered)
-* “You Might Like” system with dynamic refresh
-* User directory with relationship-aware responses
+* Suggested users
+* “You Might Like” system (dynamic refresh)
+* Searchable user directory
 
 ---
 
 ### 📅 Events System
 
-* Create, update, delete events
+* Create / edit / delete events
 * RSVP (`going`, `interested`)
-* Basic search functionality
+* Basic search
 
 ---
 
 ## ⚡ Feature Highlights
 
-* **Connections Hub** with deep-linking:
+* **Connections Hub** with deep linking:
 
   * `/connections#friend-request`
   * `/connections#send-request`
@@ -92,39 +92,38 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 
 * **Optimized Feed**
 
-  * Paginated API
-  * Infinite scrolling (no full dataset loading)
+  * Pagination + infinite scroll
+  * No full dataset loading
 
 * **Smart Suggestions**
 
-  * Avoids repeated users using `exclude_id`
+  * Avoids repetition using `exclude_id`
 
-* **UI Consistency**
+* **Real-time UI feel**
 
-  * Global state sync (no refresh needed)
-  * Avatar fallback handling
+  * State updates without page refresh
 
 ---
 
 ## 🏗️ Architecture
 
-### Frontend
+### Frontend Structure
 
 * Pages → `src/pages/`
 * Components → `src/components/`
-* State → Redux Toolkit (`authSlice`, `feedSlice`, etc.)
 * API → centralized Axios client
+* State → Redux Toolkit slices
 
 ### State Management
 
 * Global: Redux Toolkit (`createAsyncThunk`)
 * Local: React `useState`
 
-### Performance Optimizations
+### Performance Optimization
 
 * `useMemo` for derived data
-* Scoped Redux updates (no full re-fetch)
-* Backend pagination to limit rendering
+* Scoped updates (avoid full re-fetch)
+* Backend pagination
 
 ---
 
@@ -133,71 +132,51 @@ User → React UI → Axios → DRF API → PostgreSQL → Response → UI Updat
 ### Current Implementation
 
 * JWT stored in `localStorage`
-* Tokens attached via `Authorization: Bearer <token>`
+* Sent via `Authorization: Bearer <token>`
 
 ### Tradeoffs
 
-* Simple and fast to implement
-* Vulnerable to XSS if not handled properly
+* Simple and fast
+* Vulnerable to XSS if not mitigated
 
 ### Production Improvements
 
 * HttpOnly + Secure cookies for refresh tokens
 * Short-lived access tokens
-* Content Security Policy (CSP)
-* Strict input sanitization
+* CSP and input sanitization
 
 ### CSRF / XSS
 
-* CSRF minimized (token-based auth)
-* XSS remains primary concern due to localStorage
-
----
-
-## 🧩 Backend Design
-
-### API Structure
-
-* `/api/auth/` → Authentication
-* `/api/users/` → Profiles & relationships
-* `/api/feed/` → Posts & comments
-* `/api/events/` → Events system
-
-### Authorization
-
-* Default: `IsAuthenticated`
-* Object-level restrictions enforced
-* Feed visibility handled in querysets
+* CSRF minimized (no cookie auth)
+* XSS is the primary risk (due to localStorage)
 
 ---
 
 ## 📈 Scaling Strategy
 
-Planned improvements for production scale:
-
 * PostgreSQL indexing (`created_at`, `author_id`)
-* Object storage (S3-compatible) + CDN
-* Redis caching for hot endpoints
+* Object storage + CDN for media
+* Redis caching
 * Background jobs (Celery / RQ)
-* Full-text search (Postgres / trigram)
+* Full-text search (Postgres)
 
 ---
 
 ## ⚖️ Key Engineering Tradeoffs
 
-* Used `localStorage` for JWT for simplicity, with awareness of XSS risks
-* Added extra features (events, social graph) to demonstrate system design ability
-* Prioritized backend robustness over UI polish due to time constraints
+* Used `localStorage` for JWT for simplicity
+* Built additional features (events, social graph) to demonstrate system design
+* Prioritized backend robustness over UI polish
 
 ---
 
 ## 🔮 Future Improvements
 
-* Switch to HttpOnly cookie-based authentication
-* Add Redis caching layer
-* Optimize ORM queries (`select_related`, `prefetch_related`)
-* Introduce WebSockets for real-time updates
-* Improve frontend component abstraction
+* HttpOnly cookie-based authentication
+* Redis caching layer
+* Query optimization (`select_related`, `prefetch_related`)
+* WebSockets for real-time updates
+* Better frontend abstraction
 
 ---
 
@@ -209,25 +188,25 @@ Used **Gemini 3.1 Pro** and **GPT-5.2** as development partners.
 
 * Codebase navigation
 * Feature implementation
-* Debugging and edge-case handling
+* Debugging and validation
 
 ### Prompting Strategy
 
-* “Find the exact file responsible for X”
+* “Find exact file responsible for X”
 * “Make minimal patch for Y”
-* “Verify build and report issues”
+* “Verify build after changes”
 
-### Validation Process
+### Validation
 
 * Manual code review
-* Running builds (`npm run build`)
-* Django checks & testing
+* `npm run build`
+* Django checks
 
 ### Handling AI Errors
 
-* Refined prompts with precise requirements
-* Verified logic through actual code flow
-* Iterated until behavior matched expectations
+* Refined prompts with precision
+* Verified actual code paths
+* Iterated until correct behavior
 
 ---
 
@@ -240,11 +219,11 @@ Used **Gemini 3.1 Pro** and **GPT-5.2** as development partners.
 
 ---
 
-### Backend Setup
+### Backend
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # or PowerShell equivalent
+source .venv/bin/activate
 pip install -r backend/requirements.txt
 
 cd backend
@@ -254,7 +233,7 @@ python manage.py runserver
 
 ---
 
-### Frontend Setup
+### Frontend
 
 ```bash
 cd buddyscript-ui
@@ -264,16 +243,15 @@ npm run dev
 
 ---
 
-## 🔑 Environment Configuration
+## 🔑 Environment
 
 ### Backend
 
-* Configure `.env` file
-* Set:
+Configure `.env`:
 
-  * `DJANGO_DEBUG=0`
-  * `DJANGO_ALLOWED_HOSTS`
-  * `DATABASE_URL`
+* `DJANGO_DEBUG=0`
+* `DJANGO_ALLOWED_HOSTS`
+* `DATABASE_URL`
 
 ### Frontend
 
@@ -300,6 +278,137 @@ buddyscript-ui/  → React frontend
 
 ---
 
+# 📚 API Reference (Backend)
+
+## Auth (JWT)
+
+* POST /api/auth/login/ — obtain JWT tokens.
+  Body: { "email": "...", "password": "..." }
+
+* POST /api/auth/login/refresh/ — refresh access token.
+  Body: { "refresh": "..." }
+
+* POST /api/auth/register/ — create a new user.
+  Body: { "email": "...", "password": "...", "first_name": "...", "last_name": "..." }
+
+---
+
+## Users (Profiles + Relationships)
+
+* GET /api/users/me/ — get your profile
+* PATCH /api/users/me/ — update profile
+
+Fields:
+first_name, last_name, bio, role, profile_photo
+
+* GET /api/users/<id>/ — get user profile
+
+* GET /api/users/suggested/ — suggested users
+
+* GET /api/users/you-might-like/ — one suggestion
+  Query: ?exclude_id=<id>
+
+* GET /api/users/directory/ — searchable user list
+  Query: ?q=<search>
+  Pagination: ?page, ?page_size
+
+Response includes:
+is_friend, is_following, incoming_request_id, outgoing_request_id
+
+* POST /api/users/follow/<id>/ — follow/unfollow
+
+* GET /api/users/followers/
+
+* GET /api/users/following/
+
+* GET /api/users/friends/
+
+* POST /api/users/friend-requests/send/<id>/
+
+* GET /api/users/friend-requests/incoming/
+
+* GET /api/users/friend-requests/sent/
+
+* POST /api/users/friend-requests/<request_id>/accept/
+
+* POST /api/users/friend-requests/<request_id>/decline/
+
+* POST /api/users/friend-requests/<request_id>/cancel/
+
+* POST /api/users/unfriend/<id>/
+
+---
+
+## Feed (Posts + Comments)
+
+Base path: /api/feed/
+
+### Posts
+
+* GET /api/feed/posts/
+  Query: ?author, ?q
+  Pagination: ?page, ?page_size
+
+* POST /api/feed/posts/
+  Fields: content, visibility, images[], image_captions[]
+
+* GET /api/feed/posts/<id>/
+
+* PATCH /api/feed/posts/<id>/
+
+* DELETE /api/feed/posts/<id>/
+
+* POST /api/feed/posts/<id>/like/
+  Body: { "type": "like" | "love" | "haha" }
+
+* GET /api/feed/posts/<id>/reactors/
+
+* GET /api/feed/posts/<id>/likers/
+
+---
+
+### Comments
+
+* GET /api/feed/comments/
+
+* POST /api/feed/comments/
+  Fields: post, parent, content
+
+* GET /api/feed/comments/<id>/
+
+* PATCH /api/feed/comments/<id>/
+
+* DELETE /api/feed/comments/<id>/
+
+* POST /api/feed/comments/<id>/like/
+
+* GET /api/feed/comments/<id>/reactors/
+
+---
+
+## Events
+
+Base path: /api/events/
+
+* GET /api/events/
+* POST /api/events/
+
+Fields:
+name, starts_at, location, details
+
+* GET /api/events/<id>/
+
+* PATCH /api/events/<id>/
+
+* DELETE /api/events/<id>/
+
+* POST /api/events/<event_id>/rsvp/
+  Body: { "status": "going" | "interested" }
+
+* DELETE /api/events/<event_id>/rsvp/
+
+---
+
 ## 🧪 Common Commands
 
 ### Backend
@@ -321,10 +430,10 @@ npm run lint
 
 # 🏁 Final Note
 
-This project was built as part of a full-stack engineering assessment with a focus on:
+This project demonstrates:
 
-* System-level thinking
-* AI-assisted development
+* Full-stack system design
+* AI-assisted development workflow
 * Security and scalability awareness
 
 ---
@@ -336,5 +445,4 @@ This project was built as part of a full-stack engineering assessment with a foc
 * Demo: [https://www.youtube.com/watch?v=xXNGglxiZgI](https://www.youtube.com/watch?v=xXNGglxiZgI)
 
 ---
-
 
