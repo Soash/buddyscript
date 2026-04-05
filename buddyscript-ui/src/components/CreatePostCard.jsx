@@ -14,6 +14,7 @@ import VisibilityGrid from './createpostcard/VisibilityGrid';
 const CreatePostCard = () => {
     const dispatch = useDispatch();
     const { user: currentUser } = useSelector(state => state.auth);
+    const { createPostUploading, createPostUploadProgress } = useSelector(state => state.feed);
     
     // Core State
     const [text, setText] = useState('');
@@ -51,13 +52,21 @@ const CreatePostCard = () => {
         setImageCaptions((prev) => prev.filter((_, idx) => idx !== index));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const trimmed = text.trim();
         if (!trimmed && images.length === 0) return;
 
-        dispatch(createPost({ content: trimmed, visibility, images, imageCaptions }));
-        setText(''); setImages([]); setImageCaptions([]);
+        if (createPostUploading) return;
+
+        try {
+            await dispatch(createPost({ content: trimmed, visibility, images, imageCaptions })).unwrap();
+            setText('');
+            setImages([]);
+            setImageCaptions([]);
+        } catch {
+            // Keep the current draft so the user can retry.
+        }
     };
 
     return (
@@ -84,6 +93,30 @@ const CreatePostCard = () => {
                         setVisibility={setVisibility} 
                         isDarkMode={isDarkMode} 
                     />
+
+                    {createPostUploading && (
+                        <div style={{ marginTop: '12px' }}>
+                            <div className="progress" style={{ height: '8px' }}>
+                                {typeof createPostUploadProgress === 'number' ? (
+                                    <div
+                                        className="progress-bar"
+                                        role="progressbar"
+                                        style={{ width: `${createPostUploadProgress}%` }}
+                                        aria-valuenow={createPostUploadProgress}
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"
+                                    />
+                                ) : (
+                                    <div
+                                        className="progress-bar progress-bar-striped progress-bar-animated"
+                                        role="progressbar"
+                                        style={{ width: '100%' }}
+                                        aria-label="Uploading"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* 4. The Action Footer */}
@@ -92,6 +125,7 @@ const CreatePostCard = () => {
                     onVideoClick={() => setIsVideoModalOpen(true)} 
                     onEventClick={() => setIsEventModalOpen(true)} 
                     onArticleClick={() => setIsArticleModalOpen(true)} 
+                    isSubmitting={createPostUploading}
                 />
             </form>
 

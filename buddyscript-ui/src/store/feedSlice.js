@@ -1,5 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
 import api from '../api/axios';
+
+export const setCreatePostUploadProgress = createAction('feed/setCreatePostUploadProgress');
 
 export const fetchPosts = createAsyncThunk('feed/fetchPosts', async (arg, { rejectWithValue }) => {
     try {
@@ -32,7 +34,7 @@ export const fetchPosts = createAsyncThunk('feed/fetchPosts', async (arg, { reje
     }
 });
 
-export const createPost = createAsyncThunk('feed/createPost', async (postData, { rejectWithValue }) => {
+export const createPost = createAsyncThunk('feed/createPost', async (postData, { rejectWithValue, dispatch }) => {
     try {
         const hasImages = Array.isArray(postData?.images) && postData.images.length > 0;
 
@@ -51,7 +53,23 @@ export const createPost = createAsyncThunk('feed/createPost', async (postData, {
                 formData.append('image_captions', caption || '');
             });
 
-            response = await api.post('feed/posts/', formData);
+            response = await api.post('feed/posts/', formData, {
+                onUploadProgress: (progressEvent) => {
+                    const total = progressEvent?.total;
+                    const loaded = progressEvent?.loaded;
+                    if (typeof loaded !== 'number' || loaded < 0) return;
+
+                    // Some browsers / environments don't provide a computable total.
+                    // In that case, show an indeterminate progress bar.
+                    if (typeof total !== 'number' || total <= 0) {
+                        dispatch(setCreatePostUploadProgress(null));
+                        return;
+                    }
+
+                    const percent = Math.max(0, Math.min(100, Math.round((loaded * 100) / total)));
+                    dispatch(setCreatePostUploadProgress(percent));
+                },
+            });
         } else {
             response = await api.post('feed/posts/', {
                 content: postData?.content || '',
@@ -212,6 +230,8 @@ const feedSlice = createSlice({
         loadingInitial: false,
         loadingMore: false,
         error: null,
+        createPostUploading: false,
+        createPostUploadProgress: null,
         page: 1,
         hasMore: true,
         next: null,
@@ -246,6 +266,9 @@ const feedSlice = createSlice({
         };
 
         builder
+            .addCase(setCreatePostUploadProgress, (state, action) => {
+                state.createPostUploadProgress = action.payload;
+            })
             .addCase(fetchPosts.pending, (state, action) => {
                 const requestedPage = action.meta?.arg && typeof action.meta.arg === 'object'
                     ? (action.meta.arg.page || 1)
@@ -296,8 +319,19 @@ const feedSlice = createSlice({
                 state.loadingMore = false;
                 state.error = action.payload;
             })
+            .addCase(createPost.pending, (state, action) => {
+                const hasImages = Array.isArray(action.meta?.arg?.images) && action.meta.arg.images.length > 0;
+                state.createPostUploading = hasImages;
+                state.createPostUploadProgress = null;
+            })
             .addCase(createPost.fulfilled, (state, action) => {
                 state.posts.unshift(action.payload);
+                state.createPostUploading = false;
+                state.createPostUploadProgress = null;
+            })
+            .addCase(createPost.rejected, (state, action) => {
+                state.createPostUploading = false;
+                state.createPostUploadProgress = null;
             })
             .addCase(toggleLike.fulfilled, (state, action) => {
                 applyPostReactionUpdate(state, action.payload);
